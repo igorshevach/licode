@@ -7,7 +7,7 @@ var express = require('express'),
     N = require('./nuve'),
     fs = require("fs"),
     https = require("https"),
-        config = require('./../../licode_config');
+    config = require('./../../licode_config');
 
 var options = {
     key: fs.readFileSync('cert/key.pem').toString(),
@@ -58,7 +58,6 @@ N.API.getRooms(function(roomlist) {
     }
 });
 
-
 app.get('/getRooms/', function(req, res) {
     "use strict";
     N.API.getRooms(function(rooms) {
@@ -86,6 +85,12 @@ app.post('/createToken/', function(req, res) {
     });
 });
 
+app.post('/shual/', function(req, res) {
+    "use strict";
+
+    res.send("ShualBack");
+});
+
 
 app.use(function(req, res, next) {
     "use strict";
@@ -98,8 +103,6 @@ app.use(function(req, res, next) {
         next();
     }
 });
-
-
 
 app.listen(3001);
 

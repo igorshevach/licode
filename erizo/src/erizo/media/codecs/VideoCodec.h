@@ -31,12 +31,12 @@ namespace erizo {
       virtual ~VideoEncoder();
       int initEncoder (const VideoCodecInfo& info);
       int encodeVideo (unsigned char* inBuffer, int length, 
-          unsigned char* outBuffer, int outLength, int& hasFrame);
+          unsigned char*& outBuffer, int& hasFrame, long long pts);
       int closeEncoder ();
 
-    private:
       AVCodec* vCoder;
       AVCodecContext* vCoderContext;
+    private:
       AVFrame* cPicture;
   };
 

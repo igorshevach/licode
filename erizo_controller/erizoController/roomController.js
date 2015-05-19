@@ -107,6 +107,11 @@ exports.RoomController = function (spec) {
     };
 
     that.addExternalOutput = function (publisher_id, url, callback) {
+        //url = "rtmp://ny-publish.kaltura.com:1935/kLive/?p=1802381&e=1_6xhgha7a&i=0&t=16ed8c30/1_6xhgha7a_1";
+        url = "rtmp://ny-publish.kaltura.com:1935/kLive/?p=1802381&e=1_8u8ktkzw&i=0&t=45c225f8/1_8u8ktkzw_1";
+        //url = "rtmp://10.211.55.2:1935/live/98765";
+	//url = url + ".flv";
+	//url = url.substring(0, url.length - 3) + "flv";
         if (publishers[publisher_id] !== undefined) {
             log.info("Adding ExternalOutput to " + publisher_id + " url " + url);
 

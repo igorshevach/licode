@@ -8,467 +8,584 @@
 namespace erizo {
 
 DEFINE_LOGGER(ExternalOutput, "media.ExternalOutput");
-ExternalOutput::ExternalOutput(const std::string& outputUrl) : fec_receiver_(this), audioQueue_(5.0, 10.0), videoQueue_(5.0, 10.0), inited_(false), video_stream_(NULL), audio_stream_(NULL),
-    firstVideoTimestamp_(-1), firstAudioTimestamp_(-1), firstDataReceived_(-1), videoOffsetMsec_(-1), audioOffsetMsec_(-1), vp8SearchState_(lookingForStart), needToSendFir_(true)
-{
-    ELOG_DEBUG("Creating output to %s", outputUrl.c_str());
+ExternalOutput::ExternalOutput(const std::string& outputUrl) :
+		fec_receiver_(this), audioQueue_(10.0, 60.0), videoQueue_(10.0, 60.0), inited_(
+				false), video_stream_(NULL), audio_stream_(NULL), firstVideoTimestamp_(
+				-1), firstAudioTimestamp_(-1), firstDataReceived_(-1), videoOffsetMsec_(
+				-1), audioOffsetMsec_(-1), vp8SearchState_(lookingForStart), needToSendFir_(
+				true) {
+	firstPTS = 0;
+	ELOG_DEBUG("Creating output to %s", outputUrl.c_str());
 
-    // TODO these should really only be called once per application run
-    av_register_all();
-    avcodec_register_all();
+	// TODO these should really only be called once per application run
+	av_register_all();
+	avcodec_register_all();
 
-    videoQueue_.setTimebase(90000); // our video timebase is easy: always 90 khz.  We'll set audio once we receive a packet and can inspect its header.
+	videoQueue_.setTimebase(90000); // our video timebase is easy: always 90 khz.  We'll set audio once we receive a packet and can inspect its header.
 
+	context_ = avformat_alloc_context();
+	if (context_ == NULL) {
+		ELOG_ERROR("Error allocating memory for IO context");
+	} else {
 
-    context_ = avformat_alloc_context();
-    if (context_==NULL){
-        ELOG_ERROR("Error allocating memory for IO context");
-    } else {
+		outputUrl.copy(context_->filename, sizeof(context_->filename), 0);
 
-        outputUrl.copy(context_->filename, sizeof(context_->filename),0);
+		// Asaf //
+		//context_->oformat = av_guess_format(NULL, context_->filename, NULL);
+		context_->oformat = av_guess_format("flv", context_->filename, NULL);
+		// Asaf //
 
-        context_->oformat = av_guess_format(NULL,  context_->filename, NULL);
-        if (!context_->oformat){
-            ELOG_ERROR("Error guessing format %s", context_->filename);
-        } else {
-            context_->oformat->video_codec = AV_CODEC_ID_VP8;
-            context_->oformat->audio_codec = AV_CODEC_ID_NONE; // We'll figure this out once we start receiving data; it's either PCM or OPUS
-        }
-    }
+		if (!context_->oformat) {
+			ELOG_ERROR("Error guessing format %s", context_->filename);
+		} else {
+			//context_->oformat->video_codec = AV_CODEC_ID_VP8;
+			context_->oformat->video_codec = AV_CODEC_ID_H264; // Asaf //
+			context_->oformat->audio_codec = AV_CODEC_ID_NONE; // We'll figure this out once we start receiving data; it's either PCM or OPUS
+		}
+	}
 
-    unpackagedBufferpart_ = unpackagedBuffer_;
-    sinkfbSource_ = this;
-    fbSink_ = NULL;
-    unpackagedSize_ = 0;
+	unpackagedBufferpart_ = unpackagedBuffer_;
+	sinkfbSource_ = this;
+	fbSink_ = NULL;
+	unpackagedSize_ = 0;
 }
 
-bool ExternalOutput::init(){
-    MediaInfo m;
-    m.hasVideo = false;
-    m.hasAudio = false;
-    thread_ = boost::thread(&ExternalOutput::sendLoop, this);
-    recording_ = true;
-    ELOG_DEBUG("Initialized successfully");
-    return true;
+bool ExternalOutput::init() {
+	MediaInfo m;
+	m.hasVideo = false;
+	m.hasAudio = false;
+	thread_ = boost::thread(&ExternalOutput::sendLoop, this);
+	recording_ = true;
+	ELOG_DEBUG("Initialized successfully");
+	return true;
 }
 
+ExternalOutput::~ExternalOutput() {
+	ELOG_DEBUG("Destructing");
 
-ExternalOutput::~ExternalOutput(){
-    ELOG_DEBUG("Destructing");
+	// Stop our thread so we can safely nuke libav stuff and close our
+	// our file.
+	recording_ = false;
+	cond_.notify_one();
+	thread_.join();
 
-    // Stop our thread so we can safely nuke libav stuff and close our
-    // our file.
-    recording_ = false;
-    cond_.notify_one();
-    thread_.join();
+	if (audio_stream_ != NULL && video_stream_ != NULL && context_ != NULL) {
+		av_write_trailer(context_);
+	}
 
-    if (audio_stream_ != NULL && video_stream_ != NULL && context_ != NULL){
-        av_write_trailer(context_);
-    }
+	if (video_stream_ && video_stream_->codec != NULL) {
+		avcodec_close(video_stream_->codec);
+	}
 
-    if (video_stream_ && video_stream_->codec != NULL){
-        avcodec_close(video_stream_->codec);
-    }
+	if (audio_stream_ && audio_stream_->codec != NULL) {
+		avcodec_close(audio_stream_->codec);
+	}
 
-    if (audio_stream_ && audio_stream_->codec != NULL){
-        avcodec_close(audio_stream_->codec);
-    }
+	if (context_ != NULL) {
+		avio_close(context_->pb);
+		avformat_free_context(context_);
+		context_ = NULL;
+	}
 
-    if (context_ != NULL){
-        avio_close(context_->pb);
-        avformat_free_context(context_);
-        context_ = NULL;
-    }
-
-    ELOG_DEBUG("Closed Successfully");
+	ELOG_DEBUG("Closed Successfully");
 }
 
-void ExternalOutput::receiveRawData(RawDataPacket& /*packet*/){
-    return;
+void ExternalOutput::receiveRawData(RawDataPacket& /*packet*/) {
+	return;
 }
 // This is called by our fec_ object once it recovers a packet.
-bool ExternalOutput::OnRecoveredPacket(const uint8_t* rtp_packet, int rtp_packet_length) {
-    videoQueue_.pushPacket((const char*)rtp_packet, rtp_packet_length);
-    return true;
+bool ExternalOutput::OnRecoveredPacket(const uint8_t* rtp_packet,
+		int rtp_packet_length) {
+	videoQueue_.pushPacket((const char*) rtp_packet, rtp_packet_length);
+	return true;
 }
 
-int32_t ExternalOutput::OnReceivedPayloadData(const uint8_t* payload_data, const uint16_t payload_size, const webrtc::WebRtcRTPHeader* rtp_header) {
-    // Unused by WebRTC's FEC implementation; just something we have to implement.
-    return 0;
+int32_t ExternalOutput::OnReceivedPayloadData(const uint8_t* payload_data,
+		const uint16_t payload_size,
+		const webrtc::WebRtcRTPHeader* rtp_header) {
+	// Unused by WebRTC's FEC implementation; just something we have to implement.
+	return 0;
 }
 
+void ExternalOutput::writeAudioData(char* buf, int len) {
+	RtpHeader* head = reinterpret_cast<RtpHeader*>(buf);
+	uint16_t currentAudioSequenceNumber = head->getSeqNumber();
+	if (firstAudioTimestamp_ != -1
+			&& currentAudioSequenceNumber != lastAudioSequenceNumber_ + 1) {
+		// Something screwy.  We should always see sequence numbers incrementing monotonically.
+		ELOG_DEBUG("Unexpected audio sequence number; current %d, previous %d",
+				currentAudioSequenceNumber, lastAudioSequenceNumber_);
+	}
 
-void ExternalOutput::writeAudioData(char* buf, int len){
-    RtpHeader* head = reinterpret_cast<RtpHeader*>(buf);
-    uint16_t currentAudioSequenceNumber = head->getSeqNumber();
-    if (firstAudioTimestamp_ != -1 && currentAudioSequenceNumber != lastAudioSequenceNumber_ + 1) {
-        // Something screwy.  We should always see sequence numbers incrementing monotonically.
-        ELOG_DEBUG("Unexpected audio sequence number; current %d, previous %d", currentAudioSequenceNumber, lastAudioSequenceNumber_);
-    }
+	lastAudioSequenceNumber_ = currentAudioSequenceNumber;
+	if (firstAudioTimestamp_ == -1) {
+		firstAudioTimestamp_ = head->getTimestamp();
+	}
 
-    lastAudioSequenceNumber_ = currentAudioSequenceNumber;
-    if (firstAudioTimestamp_ == -1) {
-        firstAudioTimestamp_ = head->getTimestamp();
-    }
+	timeval time;
+	gettimeofday(&time, NULL);
 
-    timeval time;
-    gettimeofday(&time, NULL);
+	// Figure out our audio codec.
+	if (context_->oformat->audio_codec == AV_CODEC_ID_NONE) {
+		//We dont need any other payload at this time
+		if (head->getPayloadType() == PCMU_8000_PT) {
+			context_->oformat->audio_codec = AV_CODEC_ID_PCM_MULAW;
+		} else if (head->getPayloadType() == OPUS_48000_PT) {
+			context_->oformat->audio_codec = AV_CODEC_ID_OPUS;
+		}
+	}
 
-    // Figure out our audio codec.
-    if(context_->oformat->audio_codec == AV_CODEC_ID_NONE) {
-        //We dont need any other payload at this time
-        if(head->getPayloadType() == PCMU_8000_PT){
-            context_->oformat->audio_codec = AV_CODEC_ID_PCM_MULAW;
-        } else if (head->getPayloadType() == OPUS_48000_PT) {
-            context_->oformat->audio_codec = AV_CODEC_ID_OPUS;
-        }
-    }
+	initContext();
 
-    initContext();
+	if (audio_stream_ == NULL) {
+		// not yet.
+		return;
+	}
 
-    if (audio_stream_ == NULL) {
-        // not yet.
-        return;
-    }
+	long long currentTimestamp = head->getTimestamp();
+	if (currentTimestamp - firstAudioTimestamp_ < 0) {
+		// we wrapped.  add 2^32 to correct this.  We only handle a single wrap around since that's 13 hours of recording, minimum.
+		currentTimestamp += 0xFFFFFFFF;
+	}
 
-    long long currentTimestamp = head->getTimestamp();
-    if (currentTimestamp - firstAudioTimestamp_ < 0) {
-        // we wrapped.  add 2^32 to correct this.  We only handle a single wrap around since that's 13 hours of recording, minimum.
-        currentTimestamp += 0xFFFFFFFF;
-    }
+	long long timestampToWrite =
+			(currentTimestamp - firstAudioTimestamp_)
+					/ (audio_stream_->codec->sample_rate
+							/ audio_stream_->time_base.den); // generally 48000 / 1000 for the denominator portion, at least for opus
+	// Adjust for our start time offset
+	timestampToWrite += audioOffsetMsec_
+			/ (1000 / audio_stream_->time_base.den); // in practice, our timebase den is 1000, so this operation is a no-op.
 
-    long long timestampToWrite = (currentTimestamp - firstAudioTimestamp_) / (audio_stream_->codec->sample_rate / audio_stream_->time_base.den);    // generally 48000 / 1000 for the denominator portion, at least for opus
-    // Adjust for our start time offset
-    timestampToWrite += audioOffsetMsec_ / (1000 / audio_stream_->time_base.den);   // in practice, our timebase den is 1000, so this operation is a no-op.
+	//ELOG_ERROR("audio_stream_->time_base.den = %d", audio_stream_->time_base.den);
 
 //     ELOG_INFO("Writing audio frame %d with timestamp %u, normalized timestamp %u, audio offset msec %u, length %d, input timebase: %d/%d, target timebase: %d/%d",
 //                head->getSeqNumber(), head->getTimestamp(), timestampToWrite, audioOffsetMsec_, len - head->getHeaderLength(),
 //                1, audio_stream_->codec->sample_rate,    // timebase we requested
 //                audio_stream_->time_base.num, audio_stream_->time_base.den);                 // actual timebase
 
-    AVPacket avpkt;
-    av_init_packet(&avpkt);
-    avpkt.data = (uint8_t*) buf + head->getHeaderLength();
-    avpkt.size = len - head->getHeaderLength();
-    avpkt.pts = timestampToWrite;
-    avpkt.stream_index = 1;
-    av_interleaved_write_frame(context_, &avpkt);   // takes ownership of the packet
+	AVPacket avpkt;
+	av_init_packet(&avpkt);
+	avpkt.data = (uint8_t*) buf + head->getHeaderLength();
+	avpkt.size = len - head->getHeaderLength();
+	avpkt.pts = timestampToWrite;
+	avpkt.dts = timestampToWrite;
+	avpkt.stream_index = 1;
+	int ret = av_interleaved_write_frame(context_, &avpkt); // takes ownership of the packet
+	//ELOG_ERROR("av_interleaved_write_frame for audio returned %d", ret);
+	//ELOG_ERROR("sending audio packet PTS = %lld", timestampToWrite);
 }
 
-void ExternalOutput::writeVideoData(char* buf, int len){
-    RtpHeader* head = reinterpret_cast<RtpHeader*>(buf);
+void ExternalOutput::writeVideoData(char* buf, int len) {
+	RtpHeader* head = reinterpret_cast<RtpHeader*>(buf);
 
-    uint16_t currentVideoSeqNumber = head->getSeqNumber();
-    if (currentVideoSeqNumber != lastVideoSequenceNumber_ + 1) {
-        // Something screwy.  We should always see sequence numbers incrementing monotonically.
-        ELOG_DEBUG("Unexpected video sequence number; current %d, previous %d", currentVideoSeqNumber, lastVideoSequenceNumber_);
-        // Set our search state to look for the start of a frame, and discard what we currently have (if anything).  it's now worthless.
-        vp8SearchState_ = lookingForStart;
-        unpackagedSize_ = 0;
-        unpackagedBufferpart_ = unpackagedBuffer_;
-    }
+	uint16_t currentVideoSeqNumber = head->getSeqNumber();
+	if (currentVideoSeqNumber != lastVideoSequenceNumber_ + 1) {
+		// Something screwy.  We should always see sequence numbers incrementing monotonically.
+		ELOG_DEBUG("Unexpected video sequence number; current %d, previous %d",
+				currentVideoSeqNumber, lastVideoSequenceNumber_);
+		// Set our search state to look for the start of a frame, and discard what we currently have (if anything).  it's now worthless.
+		vp8SearchState_ = lookingForStart;
+		unpackagedSize_ = 0;
+		unpackagedBufferpart_ = unpackagedBuffer_;
+	}
 
-    lastVideoSequenceNumber_ = currentVideoSeqNumber;
+	lastVideoSequenceNumber_ = currentVideoSeqNumber;
 
-    if (firstVideoTimestamp_ == -1) {
-        firstVideoTimestamp_ = head->getTimestamp();
-    }
+	if (firstVideoTimestamp_ == -1) {
+		firstVideoTimestamp_ = head->getTimestamp();
+	}
 
-    // TODO we should be tearing off RTP padding here, if it exists.  But WebRTC currently does not use padding.
+	// TODO we should be tearing off RTP padding here, if it exists.  But WebRTC currently does not use padding.
 
-    RtpVP8Parser parser;
-    erizo::RTPPayloadVP8* payload = parser.parseVP8(reinterpret_cast<unsigned char*>(buf + head->getHeaderLength()), len - head->getHeaderLength());
+	RtpVP8Parser parser;
+	erizo::RTPPayloadVP8* payload = parser.parseVP8(
+			reinterpret_cast<unsigned char*>(buf + head->getHeaderLength()),
+			len - head->getHeaderLength());
 
-    bool endOfFrame = (head->getMarker() > 0);
-    bool startOfFrame = payload->beginningOfPartition;
+	bool endOfFrame = (head->getMarker() > 0);
+	bool startOfFrame = payload->beginningOfPartition;
 
-    bool deliver = false;
-    switch(vp8SearchState_) {
-    case lookingForStart:
-        if(startOfFrame && endOfFrame) {
-            // This packet is a standalone frame.  Send it on.  Look for start.
-            unpackagedSize_ = 0;
-            unpackagedBufferpart_ = unpackagedBuffer_;
-            memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
-            unpackagedSize_ += payload->dataLength;
-            unpackagedBufferpart_ += payload->dataLength;
-            deliver = true;
-        } else if (!startOfFrame && !endOfFrame) {
-            // This is neither the start nor the end of a frame.  Reset our buffers.  Look for start.
-            unpackagedSize_ = 0;
-            unpackagedBufferpart_ = unpackagedBuffer_;
-        } else if (startOfFrame && !endOfFrame) {
-            // Found start frame.  Copy to buffers.  Look for our end.
-            memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
-            unpackagedSize_ += payload->dataLength;
-            unpackagedBufferpart_ += payload->dataLength;
-            vp8SearchState_ = lookingForEnd;
-        } else { // (!startOfFrame && endOfFrame)
-            // We got the end of a frame.  Reset our buffers.
-            unpackagedSize_ = 0;
-            unpackagedBufferpart_ = unpackagedBuffer_;
-        }
-        break;
-    case lookingForEnd:
-        if(startOfFrame && endOfFrame) {
-            // Unexpected.  We were looking for the end of a frame, and got a whole new frame.
-            // Reset our buffers, send this frame on, and go to the looking for start state.
-            vp8SearchState_ = lookingForStart;
-            unpackagedSize_ = 0;
-            unpackagedBufferpart_ = unpackagedBuffer_;
-            memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
-            unpackagedSize_ += payload->dataLength;
-            unpackagedBufferpart_ += payload->dataLength;
-            deliver = true;
-        } else if (!startOfFrame && !endOfFrame) {
-            // This is neither the start nor the end.  Add it to our unpackage buffer.
-            memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
-            unpackagedSize_ += payload->dataLength;
-            unpackagedBufferpart_ += payload->dataLength;
-        } else if (startOfFrame && !endOfFrame) {
-            // Unexpected.  We got the start of a frame.  Clear out our buffer, toss this payload in, and continue looking for the end.
-            unpackagedSize_ = 0;
-            unpackagedBufferpart_ = unpackagedBuffer_;
-            memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
-            unpackagedSize_ += payload->dataLength;
-            unpackagedBufferpart_ += payload->dataLength;
-        } else { // (!startOfFrame && endOfFrame)
-            // Got the end of a frame.  Let's deliver and start looking for the start of a frame.
-            vp8SearchState_ = lookingForStart;
-            memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
-            unpackagedSize_ += payload->dataLength;
-            unpackagedBufferpart_ += payload->dataLength;
-            deliver = true;
-        }
-        break;
-    }
+	bool deliver = false;
+	switch (vp8SearchState_) {
+	case lookingForStart:
+		if (startOfFrame && endOfFrame) {
+			// This packet is a standalone frame.  Send it on.  Look for start.
+			unpackagedSize_ = 0;
+			unpackagedBufferpart_ = unpackagedBuffer_;
+			memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
+			unpackagedSize_ += payload->dataLength;
+			unpackagedBufferpart_ += payload->dataLength;
+			deliver = true;
+		} else if (!startOfFrame && !endOfFrame) {
+			// This is neither the start nor the end of a frame.  Reset our buffers.  Look for start.
+			unpackagedSize_ = 0;
+			unpackagedBufferpart_ = unpackagedBuffer_;
+		} else if (startOfFrame && !endOfFrame) {
+			// Found start frame.  Copy to buffers.  Look for our end.
+			memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
+			unpackagedSize_ += payload->dataLength;
+			unpackagedBufferpart_ += payload->dataLength;
+			vp8SearchState_ = lookingForEnd;
+		} else { // (!startOfFrame && endOfFrame)
+			// We got the end of a frame.  Reset our buffers.
+			unpackagedSize_ = 0;
+			unpackagedBufferpart_ = unpackagedBuffer_;
+		}
+		break;
+	case lookingForEnd:
+		if (startOfFrame && endOfFrame) {
+			// Unexpected.  We were looking for the end of a frame, and got a whole new frame.
+			// Reset our buffers, send this frame on, and go to the looking for start state.
+			vp8SearchState_ = lookingForStart;
+			unpackagedSize_ = 0;
+			unpackagedBufferpart_ = unpackagedBuffer_;
+			memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
+			unpackagedSize_ += payload->dataLength;
+			unpackagedBufferpart_ += payload->dataLength;
+			deliver = true;
+		} else if (!startOfFrame && !endOfFrame) {
+			// This is neither the start nor the end.  Add it to our unpackage buffer.
+			memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
+			unpackagedSize_ += payload->dataLength;
+			unpackagedBufferpart_ += payload->dataLength;
+		} else if (startOfFrame && !endOfFrame) {
+			// Unexpected.  We got the start of a frame.  Clear out our buffer, toss this payload in, and continue looking for the end.
+			unpackagedSize_ = 0;
+			unpackagedBufferpart_ = unpackagedBuffer_;
+			memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
+			unpackagedSize_ += payload->dataLength;
+			unpackagedBufferpart_ += payload->dataLength;
+		} else { // (!startOfFrame && endOfFrame)
+			// Got the end of a frame.  Let's deliver and start looking for the start of a frame.
+			vp8SearchState_ = lookingForStart;
+			memcpy(unpackagedBufferpart_, payload->data, payload->dataLength);
+			unpackagedSize_ += payload->dataLength;
+			unpackagedBufferpart_ += payload->dataLength;
+			deliver = true;
+		}
+		break;
+	}
 
-    delete payload;
+	delete payload;
 
-    //ELOG_DEBUG("Parsed VP8 payload, endOfFrame: %d, startOfFrame: %d, partitionId: %d", endOfFrame, startOfFrame, partitionId);
+	//ELOG_DEBUG("Parsed VP8 payload, endOfFrame: %d, startOfFrame: %d, partitionId: %d", endOfFrame, startOfFrame, partitionId);
 
-    this->initContext();
-    if (video_stream_ == NULL) {
-        // could not init our context yet.
-        return;
-    }
+	this->initContext();
+	if (video_stream_ == NULL) {
+		// could not init our context yet.
+		return;
+	}
 
-    if (deliver) {
-        unpackagedBufferpart_ -= unpackagedSize_;
+	if (deliver) {
+		unpackagedBufferpart_ -= unpackagedSize_;
 
-        long long currentTimestamp = head->getTimestamp();
-        if (currentTimestamp - firstVideoTimestamp_ < 0) {
-            // we wrapped.  add 2^32 to correct this.  We only handle a single wrap around since that's ~13 hours of recording, minimum.
-            currentTimestamp += 0xFFFFFFFF;
-        }
+		long long currentTimestamp = head->getTimestamp();
+		if (currentTimestamp - firstVideoTimestamp_ < 0) {
+			// we wrapped.  add 2^32 to correct this.  We only handle a single wrap around since that's ~13 hours of recording, minimum.
+			currentTimestamp += 0xFFFFFFFF;
+		}
 
-        long long timestampToWrite = (currentTimestamp - firstVideoTimestamp_) / (90000 / video_stream_->time_base.den);  // All of our video offerings are using a 90khz clock.
+		//ELOG_ERROR("Times: currentTimestamp = %lld", currentTimestamp);
 
-        // Adjust for our start time offset
-        timestampToWrite += videoOffsetMsec_ / (1000 / video_stream_->time_base.den);   // in practice, our timebase den is 1000, so this operation is a no-op.
+		long long timestampToWrite = (currentTimestamp - firstVideoTimestamp_)
+				/ (90000 / video_stream_->time_base.den); // All of our video offerings are using a 90khz clock.
 
-        /* ELOG_DEBUG("Writing video frame %d with timestamp %u, normalized timestamp %u, video offset msec %u, length %d, input timebase: %d/%d, target timebase: %d/%d", */
-        /*            head->getSeqNumber(), head->getTimestamp(), timestampToWrite, videoOffsetMsec_, unpackagedSize_, */
-        /*            video_stream_->time_base.num, video_stream_->time_base.den,    // timebase we requested */
-        /*            video_stream_->time_base.num, video_stream_->time_base.den);                 // actual timebase */
+		//ELOG_ERROR("video_stream_->time_base.den = %d", video_stream_->time_base.den);
 
-        AVPacket avpkt;
-        av_init_packet(&avpkt);
-        avpkt.data = unpackagedBufferpart_;
-        avpkt.size = unpackagedSize_;
-        avpkt.pts = timestampToWrite;
-        avpkt.stream_index = 0;
-        av_interleaved_write_frame(context_, &avpkt);   // takes ownership of the packet
-        unpackagedSize_ = 0;
-        unpackagedBufferpart_ = unpackagedBuffer_;
-    }
+		//ELOG_ERROR("Times: timestampToWrite1 = %lld", timestampToWrite);
+
+		// Adjust for our start time offset
+		timestampToWrite += videoOffsetMsec_
+				/ (1000 / video_stream_->time_base.den); // in practice, our timebase den is 1000, so this operation is a no-op.
+
+		//ELOG_ERROR("Times: timestampToWrite2 = %lld", timestampToWrite);
+
+		/* ELOG_DEBUG("Writing video frame %d with timestamp %u, normalized timestamp %u, video offset msec %u, length %d, input timebase: %d/%d, target timebase: %d/%d", */
+		/*            head->getSeqNumber(), head->getTimestamp(), timestampToWrite, videoOffsetMsec_, unpackagedSize_, */
+		/*            video_stream_->time_base.num, video_stream_->time_base.den,    // timebase we requested */
+		/*            video_stream_->time_base.num, video_stream_->time_base.den);                 // actual timebase */
+
+		// Asaf //
+		//ELOG_ERROR("starting to process a video packet");
+
+		int gotFrame;
+		int gotFrame2;
+		if (firstPTS == 0)
+			firstPTS = timestampToWrite;
+
+		int size = m_vDecoder.decodeVideo(
+				(unsigned char*) unpackagedBufferpart_, unpackagedSize_,
+				(unsigned char*) decodeToBuffer, 600000, &gotFrame);
+		if (size > 0){
+			unsigned char* outbuff = NULL;
+			int size1 = m_vEncoder.encodeVideo((unsigned char*) decodeToBuffer,
+				size, outbuff, gotFrame2, firstPTS);
+			if (size1 > 0){
+//				ELOG_ERROR("address of the buffer is %p", outbuff);
+//				ELOG_ERROR("m_vDecoder.decodeVideo returned %d m_vEncoder.encodeVideo returned %d", size, size1);
+
+				AVPacket avpkt;
+				av_init_packet(&avpkt);
+				avpkt.data = outbuff;
+				avpkt.size = size1;
+				avpkt.pts = firstPTS;
+				avpkt.dts = firstPTS;
+				avpkt.stream_index = 0;
+
+				if (gotFrame2){
+					avpkt.flags |= AV_PKT_FLAG_KEY;
+				}
+
+				// Asaf //
+				int ret = av_interleaved_write_frame(context_, &avpkt); // takes ownership of the packet
+
+				//ELOG_ERROR("sending video packet PTS = %lld", firstPTS);
+				ELOG_ERROR("av_interleaved_write_frame for video with size %d returned %d", size1, ret);
+				firstPTS = 0;
+			}
+		}
+
+//        AVPacket avpkt;
+//        av_init_packet(&avpkt);
+//        avpkt.data = unpackagedBufferpart_;
+//        avpkt.size = unpackagedSize_;
+//        avpkt.pts = timestampToWrite;
+//        avpkt.stream_index = 0;
+//		int ret = av_interleaved_write_frame(context_, &avpkt); // takes ownership of the packet
+
+		unpackagedSize_ = 0;
+		unpackagedBufferpart_ = unpackagedBuffer_;
+	}
 }
 
 int ExternalOutput::deliverAudioData_(char* buf, int len) {
-    this->queueData(buf,len,AUDIO_PACKET);
-    return 0;
+	this->queueData(buf, len, AUDIO_PACKET);
+	return 0;
 }
 
 int ExternalOutput::deliverVideoData_(char* buf, int len) {
-    this->queueData(buf,len,VIDEO_PACKET);
-    return 0;
+	this->queueData(buf, len, VIDEO_PACKET);
+	return 0;
 }
-
 
 bool ExternalOutput::initContext() {
-    
-  if (context_->oformat->video_codec != AV_CODEC_ID_NONE &&
-            context_->oformat->audio_codec != AV_CODEC_ID_NONE &&
-            video_stream_ == NULL &&
-            audio_stream_ == NULL) {
 
-      AVCodec* videoCodec = avcodec_find_encoder(context_->oformat->video_codec);
-        if (videoCodec==NULL){
-            ELOG_ERROR("Could not find video codec");
-            return false;
-        }
-        video_stream_ = avformat_new_stream (context_, videoCodec);
-        video_stream_->id = 0;
-        video_stream_->codec->codec_id = context_->oformat->video_codec;
-        video_stream_->codec->width = 640;
-        video_stream_->codec->height = 480;
-        video_stream_->time_base = (AVRational){1,30};   // A decent guess here suffices; if processing the file with ffmpeg,
-                                                         // use -vsync 0 to force it not to duplicate frames.
-        video_stream_->codec->pix_fmt = PIX_FMT_YUV420P;
-        if (context_->oformat->flags & AVFMT_GLOBALHEADER){
-            video_stream_->codec->flags|=CODEC_FLAG_GLOBAL_HEADER;
-        }
-        context_->oformat->flags |= AVFMT_VARIABLE_FPS;
+	if (context_->oformat->video_codec != AV_CODEC_ID_NONE
+			&& context_->oformat->audio_codec != AV_CODEC_ID_NONE
+			&& video_stream_ == NULL && audio_stream_ == NULL) {
 
-        AVCodec* audioCodec = avcodec_find_encoder(context_->oformat->audio_codec);
-        if (audioCodec==NULL){
-            ELOG_ERROR("Could not find audio codec");
-            return false;
-        }
 
-        audio_stream_ = avformat_new_stream (context_, audioCodec);
-        audio_stream_->id = 1;
-        audio_stream_->codec->codec_id = context_->oformat->audio_codec;
-        audio_stream_->codec->sample_rate = context_->oformat->audio_codec == AV_CODEC_ID_PCM_MULAW ? 8000 : 48000; // TODO is it always 48 khz for opus?
-        audio_stream_->time_base = (AVRational) { 1, audio_stream_->codec->sample_rate };
-        audio_stream_->codec->channels = context_->oformat->audio_codec == AV_CODEC_ID_PCM_MULAW ? 1 : 2;   // TODO is it always two channels for opus?
-        if (context_->oformat->flags & AVFMT_GLOBALHEADER){
-            audio_stream_->codec->flags|=CODEC_FLAG_GLOBAL_HEADER;
-        }
+		ELOG_ERROR("in initContext - before");
 
-        context_->streams[0] = video_stream_;
-        context_->streams[1] = audio_stream_;
-        if (avio_open(&context_->pb, context_->filename, AVIO_FLAG_WRITE) < 0){
-            ELOG_ERROR("Error opening output file");
-            return false;
-        }
+		m_videoEncoderCodecInfo.codec = VIDEO_CODEC_H264;
+		m_videoEncoderCodecInfo.payloadType = 96;
+		m_videoEncoderCodecInfo.width = 320;
+		m_videoEncoderCodecInfo.height = 240;
+		m_videoEncoderCodecInfo.bitRate = 200000;
+		m_videoEncoderCodecInfo.frameRate = 30;
 
-        if (avformat_write_header(context_, NULL) < 0){
-            ELOG_ERROR("Error writing header");
-            return false;
-        }
-    }
+		m_videoDecoderCodecInfo.codec = VIDEO_CODEC_VP8;
+		m_videoDecoderCodecInfo.payloadType = VP8_90000_PT;
+		m_videoDecoderCodecInfo.width = 320;
+		m_videoDecoderCodecInfo.height = 240;
+		m_videoDecoderCodecInfo.bitRate = 900000;
+		m_videoDecoderCodecInfo.frameRate = 30;
 
-    return true;
+		m_vEncoder.initEncoder(m_videoEncoderCodecInfo);
+		m_vDecoder.initDecoder(m_videoDecoderCodecInfo);
+
+		/*
+		AVCodec* videoCodec = avcodec_find_encoder(
+				context_->oformat->video_codec);
+		if (videoCodec == NULL) {
+			ELOG_ERROR("Could not find video codec");
+			return false;
+		}
+		video_stream_ = avformat_new_stream(context_, m_vEncoder.vCoder);
+		video_stream_->id = 0;
+		video_stream_->codec->codec_id = context_->oformat->video_codec;
+		video_stream_->codec->width = 640;
+		video_stream_->codec->height = 480;
+		video_stream_->time_base = (AVRational ) { 1, 30 }; // A decent guess here suffices; if processing the file with ffmpeg,
+															// use -vsync 0 to force it not to duplicate frames.
+		video_stream_->codec->pix_fmt = PIX_FMT_YUV420P;
+		if (context_->oformat->flags & AVFMT_GLOBALHEADER) {
+			video_stream_->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+		}
+*/		video_stream_ = avformat_new_stream(context_, m_vEncoder.vCoder);
+
+		AVCodecContext* streamCodecContext = video_stream_->codec;
+
+		avcodec_copy_context(streamCodecContext, m_vEncoder.vCoderContext);
+
+		video_stream_->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+
+		//context_->oformat->flags |= AVFMT_VARIABLE_FPS;
+
+		AVCodec* audioCodec = avcodec_find_encoder(
+				context_->oformat->audio_codec);
+		if (audioCodec == NULL) {
+			ELOG_ERROR("Could not find audio codec");
+			return false;
+		}
+
+		audio_stream_ = avformat_new_stream(context_, audioCodec);
+		audio_stream_->id = 1;
+		audio_stream_->codec->codec_id = context_->oformat->audio_codec;
+		audio_stream_->codec->sample_rate =
+				context_->oformat->audio_codec == AV_CODEC_ID_PCM_MULAW ?
+						8000 : 48000; // TODO is it always 48 khz for opus?
+		audio_stream_->time_base = (AVRational ) { 1,
+						audio_stream_->codec->sample_rate };
+		audio_stream_->codec->channels =
+				context_->oformat->audio_codec == AV_CODEC_ID_PCM_MULAW ? 1 : 2; // TODO is it always two channels for opus?
+		if (context_->oformat->flags & AVFMT_GLOBALHEADER) {
+			audio_stream_->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+		}
+
+		context_->streams[0] = video_stream_;
+		context_->streams[1] = audio_stream_;
+		if (avio_open(&context_->pb, context_->filename, AVIO_FLAG_WRITE) < 0) {
+			ELOG_ERROR("Error opening output file");
+			return false;
+		}
+
+		if (avformat_write_header(context_, NULL) < 0) {
+			ELOG_ERROR("Error writing header");
+			return false;
+		}
+
+		// Asaf //
+
+		avformat_network_init();
+
+	}
+	return true;
 }
 
-void ExternalOutput::queueData(char* buffer, int length, packetType type){
-    if (!recording_) {
-        return;
-    }
+void ExternalOutput::queueData(char* buffer, int length, packetType type) {
+	if (!recording_) {
+		return;
+	}
 
-    RtcpHeader *head = reinterpret_cast<RtcpHeader*>(buffer);
-    if (head->isRtcp()){
-        return;
-    }
+	RtcpHeader *head = reinterpret_cast<RtcpHeader*>(buffer);
+	if (head->isRtcp()) {
+		return;
+	}
 
-    if (firstDataReceived_ == -1) {
-        timeval time;
-        gettimeofday(&time, NULL);
-        firstDataReceived_ = (time.tv_sec * 1000) + (time.tv_usec / 1000);
-        if (this->getAudioSinkSSRC() == 0){
-          ELOG_DEBUG("No audio detected");
-          context_->oformat->audio_codec = AV_CODEC_ID_PCM_MULAW;
-        }
-    }
+	if (firstDataReceived_ == -1) {
+		timeval time;
+		gettimeofday(&time, NULL);
+		firstDataReceived_ = (time.tv_sec * 1000) + (time.tv_usec / 1000);
+		if (this->getAudioSinkSSRC() == 0) {
+			ELOG_DEBUG("No audio detected");
+			context_->oformat->audio_codec = AV_CODEC_ID_PCM_MULAW;
+		}
+	}
 
-    if (needToSendFir_) {
-        this->sendFirPacket();
-        needToSendFir_ = false;
-    }
+	if (needToSendFir_) {
+		this->sendFirPacket();
+		needToSendFir_ = false;
+	}
 
-    if (type == VIDEO_PACKET){
-        if(this->videoOffsetMsec_ == -1) {
-            timeval time;
-            gettimeofday(&time, NULL);
-            videoOffsetMsec_ = ((time.tv_sec * 1000) + (time.tv_usec / 1000)) - firstDataReceived_;
-            ELOG_DEBUG("File %s, video offset msec: %llu", context_->filename, videoOffsetMsec_);
-        }
+	if (type == VIDEO_PACKET) {
+		if (this->videoOffsetMsec_ == -1) {
+			timeval time;
+			gettimeofday(&time, NULL);
+			videoOffsetMsec_ = ((time.tv_sec * 1000) + (time.tv_usec / 1000))
+					- firstDataReceived_;
+			ELOG_DEBUG("File %s, video offset msec: %llu", context_->filename,
+					videoOffsetMsec_);
+		}
 
-        // If this is a red header, let's push it to our fec_receiver_, which will spit out frames in one of our other callbacks.
-        // Otherwise, just stick it straight into the video queue.
-        RtpHeader* h = reinterpret_cast<RtpHeader*>(buffer);
-        if (h->getPayloadType() == RED_90000_PT) {
-            // The only things AddReceivedRedPacket uses are headerLength and sequenceNumber.  Unfortunately the amount of crap
-            // we would have to pull in from the WebRtc project to fully construct a webrtc::RTPHeader object is obscene.  So
-            // let's just do this hacky fix.
-            webrtc::RTPHeader hackyHeader;
-            hackyHeader.headerLength = h->getHeaderLength();
-            hackyHeader.sequenceNumber = h->getSeqNumber();
+		// If this is a red header, let's push it to our fec_receiver_, which will spit out frames in one of our other callbacks.
+		// Otherwise, just stick it straight into the video queue.
+		RtpHeader* h = reinterpret_cast<RtpHeader*>(buffer);
+		if (h->getPayloadType() == RED_90000_PT) {
+			// The only things AddReceivedRedPacket uses are headerLength and sequenceNumber.  Unfortunately the amount of crap
+			// we would have to pull in from the WebRtc project to fully construct a webrtc::RTPHeader object is obscene.  So
+			// let's just do this hacky fix.
+			webrtc::RTPHeader hackyHeader;
+			hackyHeader.headerLength = h->getHeaderLength();
+			hackyHeader.sequenceNumber = h->getSeqNumber();
 
-            // AddReceivedRedPacket returns 0 if there's data to process
-            if(0 == fec_receiver_.AddReceivedRedPacket(hackyHeader, (const uint8_t*)buffer, length, ULP_90000_PT)) {
-                fec_receiver_.ProcessReceivedFec();
-            }
-        } else {
-            videoQueue_.pushPacket(buffer, length);
-        }
-    }else{
-        if(this->audioOffsetMsec_ == -1) {
-            timeval time;
-            gettimeofday(&time, NULL);
-            audioOffsetMsec_ = ((time.tv_sec * 1000) + (time.tv_usec / 1000)) - firstDataReceived_;
-            ELOG_DEBUG("File %s, audio offset msec: %llu", context_->filename, audioOffsetMsec_);
+			// AddReceivedRedPacket returns 0 if there's data to process
+			if (0
+					== fec_receiver_.AddReceivedRedPacket(hackyHeader,
+							(const uint8_t*) buffer, length, ULP_90000_PT)) {
+				fec_receiver_.ProcessReceivedFec();
+			}
+		} else {
+			videoQueue_.pushPacket(buffer, length);
+		}
+	} else {
+		if (this->audioOffsetMsec_ == -1) {
+			timeval time;
+			gettimeofday(&time, NULL);
+			audioOffsetMsec_ = ((time.tv_sec * 1000) + (time.tv_usec / 1000))
+					- firstDataReceived_;
+			ELOG_DEBUG("File %s, audio offset msec: %llu", context_->filename,
+					audioOffsetMsec_);
 
-            // Let's also take a moment to set our audio queue timebase.
-            RtpHeader* h = reinterpret_cast<RtpHeader*>(buffer);
-            if(h->getPayloadType() == PCMU_8000_PT){
-                audioQueue_.setTimebase(8000);
-            } else if (h->getPayloadType() == OPUS_48000_PT) {
-                audioQueue_.setTimebase(48000);
-            }
-        }
-        audioQueue_.pushPacket(buffer, length);
-    }
+			// Let's also take a moment to set our audio queue timebase.
+			RtpHeader* h = reinterpret_cast<RtpHeader*>(buffer);
+			if (h->getPayloadType() == PCMU_8000_PT) {
+				audioQueue_.setTimebase(8000);
+			} else if (h->getPayloadType() == OPUS_48000_PT) {
+				audioQueue_.setTimebase(48000);
+			}
+		}
+		audioQueue_.pushPacket(buffer, length);
+	}
 
-    if( audioQueue_.hasData() || videoQueue_.hasData()) {
-        // One or both of our queues has enough data to write stuff out.  Notify our writer.
-        cond_.notify_one();
-    }
+	if (audioQueue_.hasData() || videoQueue_.hasData()) {
+		// One or both of our queues has enough data to write stuff out.  Notify our writer.
+		cond_.notify_one();
+	}
 }
 
 int ExternalOutput::sendFirPacket() {
-    if (fbSink_ != NULL) {
-        int pos = 0;
-        uint8_t rtcpPacket[50];
-        // add full intra request indicator
-        uint8_t FMT = 4;
-        rtcpPacket[pos++] = (uint8_t) 0x80 + FMT;
-        rtcpPacket[pos++] = (uint8_t) 206;
-        pos = 12;
-        fbSink_->deliverFeedback((char*)rtcpPacket, pos);
-        return pos;
-    }
+	if (fbSink_ != NULL) {
+		int pos = 0;
+		uint8_t rtcpPacket[50];
+		// add full intra request indicator
+		uint8_t FMT = 4;
+		rtcpPacket[pos++] = (uint8_t) 0x80 + FMT;
+		rtcpPacket[pos++] = (uint8_t) 206;
+		pos = 12;
+		fbSink_->deliverFeedback((char*) rtcpPacket, pos);
+		return pos;
+	}
 
-    return -1;
+	return -1;
 }
 
 void ExternalOutput::sendLoop() {
-  while (recording_) {
-    boost::unique_lock<boost::mutex> lock(mtx_);
-    cond_.wait(lock);
-    while (audioQueue_.hasData()) {
-      boost::shared_ptr<dataPacket> audioP = audioQueue_.popPacket();
-      this->writeAudioData(audioP->data, audioP->length);
-    }
-    while (videoQueue_.hasData()) {
-      boost::shared_ptr<dataPacket> videoP = videoQueue_.popPacket();
-      this->writeVideoData(videoP->data, videoP->length);
-    }
-    if (!inited_ && firstDataReceived_!=-1){
-      inited_ = true;
-    }
-  }
+	while (recording_) {
+		boost::unique_lock < boost::mutex > lock(mtx_);
+		cond_.wait(lock);
+		while (audioQueue_.hasData()) {
+			boost::shared_ptr<dataPacket> audioP = audioQueue_.popPacket();
+			this->writeAudioData(audioP->data, audioP->length);
+		}
+		while (videoQueue_.hasData()) {
+			boost::shared_ptr<dataPacket> videoP = videoQueue_.popPacket();
+			this->writeVideoData(videoP->data, videoP->length);
+		}
+		if (!inited_ && firstDataReceived_ != -1) {
+			inited_ = true;
+		}
+	}
 
-  // Since we're bailing, let's completely drain our queues of all data.
-  while (audioQueue_.getSize() > 0) {
-    boost::shared_ptr<dataPacket> audioP = audioQueue_.popPacket(true); // ignore our minimum depth check
-    this->writeAudioData(audioP->data, audioP->length);
-  }
-  while (videoQueue_.getSize() > 0) {
-    boost::shared_ptr<dataPacket> videoP = videoQueue_.popPacket(true); // ignore our minimum depth check
-    this->writeVideoData(videoP->data, videoP->length);
-  }
+	// Since we're bailing, let's completely drain our queues of all data.
+	while (audioQueue_.getSize() > 0) {
+		boost::shared_ptr<dataPacket> audioP = audioQueue_.popPacket(true); // ignore our minimum depth check
+		this->writeAudioData(audioP->data, audioP->length);
+	}
+	while (videoQueue_.getSize() > 0) {
+		boost::shared_ptr<dataPacket> videoP = videoQueue_.popPacket(true); // ignore our minimum depth check
+		this->writeVideoData(videoP->data, videoP->length);
+	}
 }
 }
 

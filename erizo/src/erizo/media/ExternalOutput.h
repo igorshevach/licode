@@ -39,6 +39,17 @@ public:
                                            const webrtc::WebRtcRTPHeader* rtp_header);
 
 private:
+    // Asaf //
+    VideoCodecInfo m_videoEncoderCodecInfo;
+    VideoCodecInfo m_videoDecoderCodecInfo;
+    VideoEncoder m_vEncoder;
+    VideoDecoder m_vDecoder;
+    unsigned char decodeToBuffer[600000];
+    unsigned char encodeToBuffer[600000];
+    long long firstPTS;
+
+    // Asaf //
+
     webrtc::FecReceiverImpl  fec_receiver_;
     RtpPacketQueue audioQueue_, videoQueue_;
     bool recording_, inited_;

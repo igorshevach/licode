@@ -383,20 +383,20 @@ namespace erizo {
 
 
   void OutputProcessor::receiveRawData(RawDataPacket& packet) {
-    int hasFrame = 0;
-    if (packet.type == VIDEO) {
-      //      ELOG_DEBUG("Encoding video: size %d", packet.length);
-      int a = vCoder.encodeVideo(packet.data, packet.length, encodedBuffer_,UNPACKAGED_BUFFER_SIZE,hasFrame);
-      if (a > 0)
-        this->packageVideo(encodedBuffer_, a, packagedBuffer_);
-    } else {
-      //      int a = this->encodeAudio(packet.data, packet.length, &pkt);
-      //      if (a > 0) {
-      //        ELOG_DEBUG("GUAY a %d", a);
-      //      }
-
-    }
-    //    av_free_packet(&pkt);
+//    int hasFrame = 0;
+//    if (packet.type == VIDEO) {
+//      //      ELOG_DEBUG("Encoding video: size %d", packet.length);
+//      int a = vCoder.encodeVideo(packet.data, packet.length, encodedBuffer_,UNPACKAGED_BUFFER_SIZE,hasFrame,AV_NOPTS_VALUE);
+//      if (a > 0)
+//        this->packageVideo(encodedBuffer_, a, packagedBuffer_);
+//    } else {
+//      //      int a = this->encodeAudio(packet.data, packet.length, &pkt);
+//      //      if (a > 0) {
+//      //        ELOG_DEBUG("GUAY a %d", a);
+//      //      }
+//
+//    }
+//    //    av_free_packet(&pkt);
   }
 
   bool OutputProcessor::initAudioCoder() {

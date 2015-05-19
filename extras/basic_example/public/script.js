@@ -9,24 +9,50 @@ function getParameterByName(name) {
 }
 
 function startRecording () {
-  if (room !== undefined){
-    if (!recording){
-      room.startRecording(localStream, function(id) {
-        recording = true;
-        recordingId = id;
-      });
-      
-    } else {
-      room.stopRecording(recordingId);
-      recording = false;
+
+    var rtmpUrl = document.getElementById('rtmpurl').value;
+
+    if (room !== undefined && rtmpUrl !== undefined && rtmpUrl.startsWith('rtmp')){
+        if (!recording){
+            alert("script rtmp="+rtmpUrl);
+            room.startRecording(localStream, function(id) {
+
+                recording = true;
+                recordingId = id;
+            }, rtmpUrl);
+
+        } else {
+            room.stopRecording(recordingId);
+            recording = false;
+        }
     }
-  }
+    else{
+        alert("room not initialized or invalid rtmp url");
+    }
 }
+
+function sendShual() {
+    var req = new XMLHttpRequest();
+    var url = serverUrl + 'shual/';
+    var body = {username: "aaa", role: "bbb"};
+
+    req.onreadystatechange = function () {
+        if (req.readyState === 4) {
+            alert(req.responseText);
+        }
+    };
+
+    req.open('POST', url, true);
+    req.setRequestHeader('Content-Type', 'application/json');
+    req.send(JSON.stringify(body));
+}
+
 
 window.onload = function () {
   recording = false;
   var screen = getParameterByName("screen");
-  var config = {audio: true, video: true, data: true, screen: screen, videoSize: [640, 480, 640, 480]};
+  //var config = {audio: true, video: true, data: true, screen: screen, videoSize: [640, 480, 640, 480]};
+  var config = {audio: true, video: true, data: true, screen: screen, videoSize: [320, 240, 320, 240]};
   // If we want screen sharing we have to put our Chrome extension id. The default one only works in our Lynckia test servers.
   // If we are not using chrome, the creation of the stream will fail regardless.
   if (screen){
@@ -79,6 +105,8 @@ window.onload = function () {
 
         document.body.appendChild(div);
         stream.show("test" + stream.getID());
+
+          stream.play()
 
       });
 
