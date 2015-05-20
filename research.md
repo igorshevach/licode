@@ -16,8 +16,7 @@ It is based on observations and requirements of a would be webrtc mediagateway.
 system requirements
 -------------------
 
-  The whole thing is pushed forward to meet several requirements:
-A. get as little delay as possible under potentally harsh internet conditions.
+A. get as little delay as possible under potentally harsh internet conditions\n.
 B. be able to scale to include as many as possible participants.
 C. each of participants has limited bandwidth for upload and download.
 D. both upload and download bandwidth may be shared and public or otherwise subject to dynamic changes over time.
