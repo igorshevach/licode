@@ -1,4 +1,4 @@
-media-gateway
+                                                WebRTC Media Gateway
 ============
 
 abbreviations:
