@@ -51,7 +51,6 @@ current design makes use of distinct process for each of the participants. for t
 and the code responsible for mixing is called mixer. 
 the writer can be in one of the states: active, error.
 active writer delivers samples without delay periodically once in every X ms, where X < 500 ms.
-------
 writer media type can be either audio or video. 
 idle writer is either in state transition (joining, departing, adjusting it's BW, or just muted or switched off it's camera etc).
 error writer is the one expreiencing problems beyond the scope of this doc.
