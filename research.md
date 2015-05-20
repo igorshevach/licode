@@ -69,4 +69,10 @@ a mixer waits for timeout before it attempts to write data out according to conf
 once the window is filled the base timestamp is updated as well as read offset and the writer's condition is fired.
 then the mixer begins writing the window away.
 
+expected pitfalls:
+as always with captured media:
+- timestamp jitter affecting audio is expected. 
+- timestamps drift between different sources due to different sources (even between same video and microphone).
+
+
 
