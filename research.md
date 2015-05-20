@@ -1,5 +1,5 @@
                                                 WebRTC Media Gateway
-============
+                                                ============
 
 abbreviations:
 -------------
