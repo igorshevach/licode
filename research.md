@@ -16,12 +16,12 @@ It is based on observations and requirements of a would be webrtc mediagateway.
 system requirements
 -------------------
 
-A. get as little delay as possible under potentally harsh internet conditions\n.
-B. be able to scale to include as many as possible participants.
-C. each of participants has limited bandwidth for upload and download.
-D. both upload and download bandwidth may be shared and public or otherwise subject to dynamic changes over time.
-E. WebRTC is the media protocol adopted by each of the participants.
-F. media gateway is based on Licode library which adopts start topology where participants communicate with server
+- get as little delay as possible under potentally harsh internet conditions.
+- be able to scale to include as many as possible participants.
+- each of participants has limited bandwidth for upload and download.
+- both upload and download bandwidth may be shared and public or otherwise subject to dynamic changes over time.
+- WebRTC is the media protocol adopted by each of the participants.
+- media gateway is based on Licode library which adopts start topology where participants communicate with server
  and server is used to multiplex streams to the rest thereby minimizing the upload bandwidth and roughly doubling the delay
  in general case.
  
