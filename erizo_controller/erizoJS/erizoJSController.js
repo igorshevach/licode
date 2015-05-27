@@ -1,6 +1,6 @@
 /*global require, exports, , setInterval, clearInterval*/
 
-var addon = require('./../../erizoAPI/build/Release/addon');
+var addon = require('./../../erizoAPI/build/addon');
 var logger = require('./../common/logger').logger;
 var amqper = require('./../common/amqper');
 
