@@ -23,7 +23,7 @@ exports.RoomController = function (spec) {
     var amqper = spec.amqper;
 
     var KEEPALIVE_INTERVAL = 5*1000;
-    var TIMEOUT_LIMIT = 2;
+    var TIMEOUT_LIMIT = 20000;
 
     var eventListeners = [];
 
@@ -56,18 +56,29 @@ exports.RoomController = function (spec) {
     };
 
     var keepAliveLoop = setInterval(sendKeepAlive, KEEPALIVE_INTERVAL);
-
+    var checkErizoJS;
     var getErizoJS = function(callback) {
-    	amqper.callRpc("ErizoAgent", "createErizoJS", [], {callback: function(erizo_id) {
-            log.info("Using Erizo", erizo_id);
-            if (!erizos[erizo_id] && erizo_id !== 'timeout') {
-                erizos[erizo_id] = {publishers: [], ka_count: 0};
-            }
-            callback(erizo_id);
-        }});
+        //igors: single erizoJS per room
+        if(checkErizoJS === undefined ) {
+            amqper.callRpc("ErizoAgent", "createErizoJS", [], {
+                callback: function (erizo_id) {
+                    log.info("Using Erizo", erizo_id);
+                    if (!erizos[erizo_id] && erizo_id !== 'timeout') {
+                        erizos[erizo_id] = {publishers: [], ka_count: 0};
+                    }
+                    callback(erizo_id);
+                }
+            });
+        }
     };
-
+    // igors make for global erizo
+    var erizoJS;
     var getErizoQueue = function(publisher_id) {
+        if(erizoJS === undefined)
+        {
+            erizoJS = "ErizoJS_" + publishers[publisher_id];
+        }
+        return erizoJS;
         return "ErizoJS_" + publishers[publisher_id];
     };
 
@@ -146,6 +157,18 @@ exports.RoomController = function (spec) {
             callback(true);
         } else {
             callback(null, 'This stream is not being recorded');
+        }
+    };
+
+    that.activateStream = function (publisher_id, callback) {
+        if (publishers[publisher_id] !== undefined) {
+
+            log.info("activating stream with peer_id ", publisher_id);
+
+            var args = [publisher_id];
+             amqper.callRpc(getErizoQueue(publisher_id), "activateStream", args, {});
+        } else {
+            log.warn("Publisher not in the room ", publisher_id);
         }
     };
 

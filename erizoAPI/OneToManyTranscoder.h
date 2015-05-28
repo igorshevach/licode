@@ -33,8 +33,9 @@ class OneToManyTranscoder : public MediaSink {
    */
   static v8::Handle<v8::Value> close(const v8::Arguments& args);
   /*
-   * Sets the Publisher
+   * Adds the Publisher
    * Param: the WebRtcConnection of the Publisher
+   * Param: unique id of the publisher
    */
   static v8::Handle<v8::Value> setPublisher(const v8::Arguments& args);
    /*

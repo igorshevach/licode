@@ -35,11 +35,21 @@ class OneToManyProcessor : public MediaSink {
    * The object cannot be used after this call
    */
   static v8::Handle<v8::Value> close(const v8::Arguments& args);
+
   /*
-   * Sets the Publisher
+   * Adds the Publisher
    * Param: the WebRtcConnection of the Publisher
+   * Param: unique id of the publisher
    */
-  static v8::Handle<v8::Value> setPublisher(const v8::Arguments& args);
+  static v8::Handle<v8::Value> addPublisher(const v8::Arguments& args);
+
+  /*
+     * Adds the Publisher
+     * Param: the WebRtcConnection of the Publisher
+     * Param: unique id of the publisher
+     */
+   static v8::Handle<v8::Value> removePublisher(const v8::Arguments& args);
+
   /*
    * Adds an ExternalOutput
    * Param: The ExternalOutput   
@@ -70,6 +80,12 @@ class OneToManyProcessor : public MediaSink {
    * Param: the peerId
    */
   static v8::Handle<v8::Value> removeSubscriber(const v8::Arguments& args);
+
+  /*
+activate specific publisher stream
+    * Param: the peerId
+    */
+   static v8::Handle<v8::Value> activatePublisher(const v8::Arguments& args);
 };
 
 #endif

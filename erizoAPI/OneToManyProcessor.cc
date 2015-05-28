@@ -4,7 +4,7 @@
 
 #include <node.h>
 #include "OneToManyProcessor.h"
-
+#include <sstream>
 
 using namespace v8;
 
@@ -18,13 +18,15 @@ void OneToManyProcessor::Init(Handle<Object> target) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   // Prototype
   tpl->PrototypeTemplate()->Set(String::NewSymbol("close"), FunctionTemplate::New(close)->GetFunction());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("setPublisher"), FunctionTemplate::New(setPublisher)->GetFunction());
+  tpl->PrototypeTemplate()->Set(String::NewSymbol("addPublisher"), FunctionTemplate::New(addPublisher)->GetFunction());
+  tpl->PrototypeTemplate()->Set(String::NewSymbol("removePublisher"), FunctionTemplate::New(removePublisher)->GetFunction());
   tpl->PrototypeTemplate()->Set(String::NewSymbol("addExternalOutput"), FunctionTemplate::New(addExternalOutput)->GetFunction());
   tpl->PrototypeTemplate()->Set(String::NewSymbol("setExternalPublisher"), FunctionTemplate::New(setExternalPublisher)->GetFunction());
   tpl->PrototypeTemplate()->Set(String::NewSymbol("getPublisherState"), FunctionTemplate::New(getPublisherState)->GetFunction());
   tpl->PrototypeTemplate()->Set(String::NewSymbol("hasPublisher"), FunctionTemplate::New(hasPublisher)->GetFunction());
   tpl->PrototypeTemplate()->Set(String::NewSymbol("addSubscriber"), FunctionTemplate::New(addSubscriber)->GetFunction());
   tpl->PrototypeTemplate()->Set(String::NewSymbol("removeSubscriber"), FunctionTemplate::New(removeSubscriber)->GetFunction());
+  tpl->PrototypeTemplate()->Set(String::NewSymbol("activatePublisher"), FunctionTemplate::New(activatePublisher)->GetFunction());
 
   Persistent<Function> constructor = Persistent<Function>::New(tpl->GetFunction());
   target->Set(String::NewSymbol("OneToManyProcessor"), constructor);
@@ -53,7 +55,7 @@ Handle<Value> OneToManyProcessor::close(const Arguments& args) {
   return scope.Close(Null());
 }
 
-Handle<Value> OneToManyProcessor::setPublisher(const Arguments& args) {
+Handle<Value> OneToManyProcessor::addPublisher(const Arguments& args) {
   HandleScope scope;
 
   OneToManyProcessor* obj = ObjectWrap::Unwrap<OneToManyProcessor>(args.This());
@@ -63,7 +65,13 @@ Handle<Value> OneToManyProcessor::setPublisher(const Arguments& args) {
   erizo::WebRtcConnection* wr = (erizo::WebRtcConnection*)param->me;
 
   erizo::MediaSource* ms = dynamic_cast<erizo::MediaSource*>(wr);
-  me->setPublisher(ms);
+
+  v8::String::Utf8Value param1(args[1]->ToString());
+
+  // convert it to string
+  std::string peerId = std::string(*param1);
+
+  me->addPublisher(ms,peerId);
 
   return scope.Close(Null());
 }
@@ -77,7 +85,10 @@ Handle<Value> OneToManyProcessor::setExternalPublisher(const Arguments& args) {
   erizo::ExternalInput* wr = (erizo::ExternalInput*)param->me;
 
   erizo::MediaSource* ms = dynamic_cast<erizo::MediaSource*>(wr);
-  me->setPublisher(ms);
+
+  std::stringstream rndname;
+  rndname << "external input " << std::rand();
+  me->addPublisher(ms,rndname.str());
 
   return scope.Close(Null());
 }
@@ -166,6 +177,38 @@ Handle<Value> OneToManyProcessor::removeSubscriber(const Arguments& args) {
 // convert it to string
   std::string peerId = std::string(*param1);
   me->removeSubscriber(peerId);
+
+  return scope.Close(Null());
+}
+
+Handle<Value> OneToManyProcessor::removePublisher(const Arguments& args) {
+  HandleScope scope;
+
+  OneToManyProcessor* obj = ObjectWrap::Unwrap<OneToManyProcessor>(args.This());
+  erizo::OneToManyProcessor *me = (erizo::OneToManyProcessor*)obj->me;
+
+// get the param
+  v8::String::Utf8Value param1(args[0]->ToString());
+
+// convert it to string
+  std::string peerId = std::string(*param1);
+  me->removePublisher(peerId);
+
+  return scope.Close(Null());
+}
+
+Handle<Value> OneToManyProcessor::activatePublisher(const Arguments& args) {
+  HandleScope scope;
+
+  OneToManyProcessor* obj = ObjectWrap::Unwrap<OneToManyProcessor>(args.This());
+  erizo::OneToManyProcessor *me = (erizo::OneToManyProcessor*)obj->me;
+
+// get the param
+  v8::String::Utf8Value param1(args[0]->ToString());
+
+// convert it to string
+  std::string peerId = std::string(*param1);
+  me->activatePublisher(peerId);
 
   return scope.Close(Null());
 }

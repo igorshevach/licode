@@ -635,6 +635,41 @@ var listen = function () {
             socket.room.controller.removeExternalOutput(url, callback);
         });
 
+        // Gets 'stopRecorder' messages
+        // Returns callback(result, error)
+        socket.on('activateStream', function (options, callback) {
+            if (socket.user === undefined || !socket.user.permissions[Permission.RECORD]) {
+                if (callback) callback('Unauthorized');
+                return;
+            }
+
+            var streamId = options.to;
+
+            log.info("erizoController.js: activating stream" + streamId);
+
+            // Stream has been already deleted or it does not exist
+            if (socket.room.streams[streamId] === undefined) {
+                log.warn("erizoController.js: room does not contain the stream" + streamId);
+                return;
+            }
+
+            socket.room.controller.activateStream(streamId);
+
+            var i, index;
+
+            sendMsgToRoom(socket.room, 'onActivateStream', {id: streamId});
+
+            if (socket.room.streams[streamId].hasAudio() || socket.room.streams[streamId].hasVideo() || socket.room.streams[streamId].hasScreen()) {
+                if (!socket.room.p2p) {
+                    if (GLOBAL.config.erizoController.report.session_events) {
+                        var timeStamp = new Date();
+                        amqper.broadcast('event', {room: socket.room.id, user: socket.id, type: 'activated', stream: streamId, timestamp: timeStamp.getTime()});
+                    }
+                }
+            }
+
+        });
+
         //Gets 'unpublish' messages on the socket in order to remove a stream from the room.
         // Returns callback(result, error)
         socket.on('unpublish', function (streamId, callback) {

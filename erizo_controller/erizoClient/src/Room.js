@@ -484,6 +484,13 @@ Erizo.Room = function (spec) {
         });
     }
 
+    that.activateStream = function (stream) {
+        L.Logger.debug("Activate stream: " + stream.getID());
+        sendMessageSocket('activateStream', {to: stream.getID()}, function(error){
+            L.Logger.info('stream activated' + stream.getID());
+        });
+    }
+
     // It unpublishes the local stream in the room, dispatching a StreamEvent("stream-removed")
     that.unpublish = function (stream, callback) {
 

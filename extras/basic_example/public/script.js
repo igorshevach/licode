@@ -14,7 +14,7 @@ function startRecording () {
 
     if (room !== undefined && rtmpUrl !== undefined && rtmpUrl.startsWith('rtmp')){
         if (!recording){
-            alert("script rtmp="+rtmpUrl);
+            //alert("script rtmp="+rtmpUrl);
             room.startRecording(localStream, function(id) {
 
                 recording = true;
@@ -30,6 +30,11 @@ function startRecording () {
         alert("room not initialized or invalid rtmp url");
     }
 }
+
+function activateStream(){
+    room.activateStream(localStream);
+}
+
 
 function sendShual() {
     var req = new XMLHttpRequest();
@@ -110,11 +115,18 @@ window.onload = function () {
 
       });
 
+
       room.addEventListener("stream-added", function (streamEvent) {
         var streams = [];
         streams.push(streamEvent.stream);
         subscribeToStreams(streams);
-        document.getElementById("recordButton").disabled = false;
+	if(document.getElementById('rtmpurl').value !== ""){
+		document.getElementById("recordButton").visible = false;
+        	startRecording();
+	} else {
+		document.getElementById("recordButton").visible = true;
+		document.getElementById("recordButton").disabled = false;
+	}
       });
 
       room.addEventListener("stream-removed", function (streamEvent) {
@@ -125,12 +137,23 @@ window.onload = function () {
           document.body.removeChild(element);
         }
       });
-      
+
       room.addEventListener("stream-failed", function (streamEvent){
           console.log("STREAM FAILED, DISCONNECTION");
           room.disconnect();
-
       });
+
+       //igorS
+       room.addEventListener("stream-activated", function (streamEvent){
+
+           console.log("stream activated, stream id " + streamEvent.stream.getID());
+            if( localStream.getID() != streamEvent.stream.getID() ){
+                localStream.video.disable();
+            } else {
+                localStream.video.enable();
+            }
+
+        });
 
       room.connect();
 

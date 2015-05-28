@@ -1,0 +1,24 @@
+#!/bin/bash
+
+SCRIPT=`pwd`/$0
+FILENAME=`basename $SCRIPT`
+ROOT=`dirname $SCRIPT`
+CURRENT_DIR=`pwd`
+EXTRAS=`readlink -e $ROOT/../extras`
+
+killall -9 nodejs node
+
+#add kaltura configuration bits for automatic recording
+KALTURA_INI_CONFIGURATION_PATH=/opt/kaltura/app/configurations/webrtc.ini
+if [ -n $KALTURA_INI_CONFIGURATION_PATH ] && [ -r $KALTURA_INI_CONFIGURATION_PATH ]; then
+   . $KALTURA_INI_CONFIGURATION_PATH
+else
+   echo "no Kaltura configuration is found..."	
+fi
+echo "replacing @RTMPURL@ with $RTMPURL"
+sed -e "s#@RTMPURL@#$RTMPURL#g" $EXTRAS/basic_example/public/index.html.template > $EXTRAS/basic_example/public/index.html 
+
+cd $ROOT/erizoController
+node erizoController.js &
+
+cd $CURRENT_DIR

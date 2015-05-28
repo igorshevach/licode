@@ -6,8 +6,9 @@ var amqper = require('./../common/amqper');
 
 // Logger
 var log = logger.getLogger("ErizoJSController");
+var muxer = new addon.OneToManyProcessor();
 
-exports.ErizoJSController = function (spec) {
+    exports.ErizoJSController = function (spec) {
     "use strict";
 
     var that = {},
@@ -143,8 +144,7 @@ exports.ErizoJSController = function (spec) {
 
             log.info("Adding external input peer_id ", from);
 
-            var muxer = new addon.OneToManyProcessor(),
-                ei = new addon.ExternalInput(url);
+             var   ei = new addon.ExternalInput(url);
 
             publishers[from] = {muxer: muxer};
             subscribers[from] = {};
@@ -205,6 +205,45 @@ exports.ErizoJSController = function (spec) {
         }
     };
 
+    that.activateStream = function(streamId){
+        log.info("activateStream ", streamId);
+        if (publishers[streamId] !== undefined) {
+            publishers[streamId].muxer.activatePublisher(streamId);
+        }
+
+    }
+
+    //igors: add subscriber once
+    var subsCheck = {};
+     /* Adds a subscriber to the room. This creates a new WebRtcConnection.
+     * This WebRtcConnection will be added to the subscribers list of the
+     * OneToManyProcessor.
+     */
+    var funcAddSubscriber = function (from, to, options, callback) {
+
+            if (publishers[to] !== undefined  && subscribers[to][from] === undefined ){
+
+                log.info("Adding subscriber from ", from, 'to ', to, 'audio', options.audio, 'video', options.video);
+
+                // @ igors: modified to implement single subscriber
+                if(subsCheck[from] === undefined) {
+
+                    log.info("single stream: Adding subscriber from ", from, 'to ', to, 'audio', options.audio, 'video', options.video);
+
+                    var wrtc = new addon.WebRtcConnection(options.audio, options.video, GLOBAL.config.erizo.stunserver, GLOBAL.config.erizo.stunport, GLOBAL.config.erizo.minport, GLOBAL.config.erizo.maxport, false);
+
+                    subscribers[to][from] = wrtc;
+                    subsCheck[from] = wrtc;
+                    publishers[to].muxer.addSubscriber(wrtc, from);
+
+                    initWebRtcConnection(wrtc, callback, to, from, options.browser);
+
+                    //log.info('Publishers: ', publishers);
+                    //log.info('Subscribers: ', subscribers);
+                }
+            }
+        };
+
     /*
      * Adds a publisher to the room. This creates a new OneToManyProcessor
      * and a new WebRtcConnection. This WebRtcConnection will be the publisher
@@ -212,19 +251,20 @@ exports.ErizoJSController = function (spec) {
      */
     that.addPublisher = function (from, callback) {
 
+        log.info("addPublisher  peer_id ", from);
+
         if (publishers[from] === undefined) {
 
             log.info("Adding publisher peer_id ", from);
 
-            var muxer = new addon.OneToManyProcessor(),
-                wrtc = new addon.WebRtcConnection(true, true, GLOBAL.config.erizo.stunserver, GLOBAL.config.erizo.stunport, GLOBAL.config.erizo.minport, GLOBAL.config.erizo.maxport,false);
+            var wrtc = new addon.WebRtcConnection(true, true, GLOBAL.config.erizo.stunserver, GLOBAL.config.erizo.stunport, GLOBAL.config.erizo.minport, GLOBAL.config.erizo.maxport, false);
 
             publishers[from] = {muxer: muxer, wrtc: wrtc};
             subscribers[from] = {};
 
             wrtc.setAudioReceiver(muxer);
             wrtc.setVideoReceiver(muxer);
-            muxer.setPublisher(wrtc);
+            muxer.addPublisher(wrtc,from);
 
             initWebRtcConnection(wrtc, callback, from);
 
@@ -236,13 +276,17 @@ exports.ErizoJSController = function (spec) {
         }
     };
 
+
     /*
      * Adds a subscriber to the room. This creates a new WebRtcConnection.
      * This WebRtcConnection will be added to the subscribers list of the
      * OneToManyProcessor.
      */
-    that.addSubscriber = function (from, to, options, callback) {
+    that.addSubscriber = funcAddSubscriber;
+    /*
+        function (from, to, options, callback) {
 
+        // @ igors: modified to implement single subscriber
         if (publishers[to] !== undefined && subscribers[to][from] === undefined) {
 
             log.info("Adding subscriber from ", from, 'to ', to, 'audio', options.audio, 'video', options.video);
@@ -256,9 +300,9 @@ exports.ErizoJSController = function (spec) {
 
             //log.info('Publishers: ', publishers);
             //log.info('Subscribers: ', subscribers);
-        }
-    };
 
+    };
+}*/
     /*
      * Removes a publisher from the room. This also deletes the associated OneToManyProcessor.
      */
@@ -273,12 +317,13 @@ exports.ErizoJSController = function (spec) {
               }
             }
             publishers[from].wrtc.close();
-            publishers[from].muxer.close();
+            //publishers[from].muxer.close();
             log.info('Removing subscribers', from);
                 
             delete subscribers[from];
             log.info('Removing publisher', from);
-            delete publishers[from];
+                publishers[from].muxer.removePublisher(from);
+            //delete publishers[from];
             var count = 0;
             for (var k in publishers) {
                 if (publishers.hasOwnProperty(k)) {
@@ -298,7 +343,9 @@ exports.ErizoJSController = function (spec) {
      */
     that.removeSubscriber = function (from, to) {
 
-        if (subscribers[to][from]) {
+        // @ igors: modified to implement single subscriber
+        from=to;
+        if (subscribers[from][to]) {
             log.info('Removing subscriber ', from, 'to muxer ', to);
             subscribers[to][from].close();
             publishers[to].muxer.removeSubscriber(from);

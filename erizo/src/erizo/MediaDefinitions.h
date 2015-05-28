@@ -8,6 +8,13 @@
 
 namespace erizo{
 
+#define _PTR(x)\
+	if(!(x))\
+	{\
+		ELOG_WARN(#x " is NULL!");\
+		return -1;\
+	}\
+
 class NiceConnection;
 
 enum packetType{
