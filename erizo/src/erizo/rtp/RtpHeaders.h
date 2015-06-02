@@ -257,6 +257,17 @@ namespace erizo{
           uint32_t packetsent;
           uint32_t octetssent;
           struct receiverReport_t rrlist[1];
+
+          inline double getNtpTimestamp() {
+          	  return  ((ntptimestamp >> 32) + (ntptimestamp & 0xFFFFFFFF) / (double)0xFFFFFFFF);
+            }
+            inline uint64_t getNtpTimestampAsFileTime() {
+          	  return getNtpTimestamp() * 10000000;
+             }
+            inline uint32_t getRtpTimestamp() const{
+            	return ntohl(rtprts);
+            }
+
         } senderReport;
 // Generic NACK RTCP_RTP_FB + (FMT 1)rfc4585
 //      0                   1                   2                   3
@@ -388,8 +399,7 @@ namespace erizo{
       inline void setFCI(uint32_t fci){
         report.pli.fci = htonl(fci);
       }
-
-  };
+    };
 
 
   //    0                   1                   2                   3

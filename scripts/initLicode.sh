@@ -34,7 +34,13 @@ cd  $ROOT/erizo_controller/erizoClient/tools
 
 cd $ROOT/erizo_controller
 ./initErizo_controller.sh
-./initErizo_agent.sh
+
+if [ !$# ] ||  [ $1 != 'DEBUG' ]; then
+	echo "launching agent."
+	./initErizo_agent.sh
+else
+	echo "DEBUG specified - agent will be debugged"
+fi
 
 
 cp $ROOT/erizo_controller/erizoClient/dist/erizo.js $EXTRAS/basic_example/public/

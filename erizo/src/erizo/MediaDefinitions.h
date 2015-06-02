@@ -5,15 +5,9 @@
 #ifndef MEDIADEFINITIONS_H_
 #define MEDIADEFINITIONS_H_
 #include <boost/thread/mutex.hpp>
+#include "erizo_common.h"
 
 namespace erizo{
-
-#define _PTR(x)\
-	if(!(x))\
-	{\
-		ELOG_WARN(#x " is NULL!");\
-		return -1;\
-	}\
 
 class NiceConnection;
 
@@ -156,6 +150,29 @@ public:
     virtual ~NiceReceiver(){}
 };
 
+namespace filetime
+{
+	typedef int64_t timestamp;
+
+	const timestamp SECOND = 10000000;
+	const timestamp MILLISEC = 10000;
+	const timestamp MIN = 0xFFFFFFFFFFFFFFFF;
+	inline timestamp milliseconds(const int32_t & milli)
+	{
+		return milli * MILLISEC;
+	}
+	inline timestamp nanoseconds(const timestamp & nsec)
+	{
+		return nsec * 100;
+	}
+	inline int32_t milliseconds_from(const timestamp & ft)
+	{
+		return ft / MILLISEC;
+	}
+
+}
+
 } /* namespace erizo */
+
 
 #endif /* MEDIADEFINITIONS_H_ */

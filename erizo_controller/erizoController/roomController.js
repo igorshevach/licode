@@ -56,6 +56,7 @@ exports.RoomController = function (spec) {
     };
 
     var keepAliveLoop = setInterval(sendKeepAlive, KEEPALIVE_INTERVAL);
+    // igors make for 1 erizo per room
     var checkErizoJS;
     var getErizoJS = function(callback) {
         //igors: single erizoJS per room
@@ -71,7 +72,7 @@ exports.RoomController = function (spec) {
             });
         }
     };
-    // igors make for global erizo
+    // igors make for 1 erizo per room
     var erizoJS;
     var getErizoQueue = function(publisher_id) {
         if(erizoJS === undefined)
