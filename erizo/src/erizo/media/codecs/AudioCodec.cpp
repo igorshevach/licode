@@ -26,6 +26,7 @@ public:
 
 DEFINE_LOGGER(AudioEncoder, "media.codecs.AudioEncoder");
 DEFINE_LOGGER(AudioDecoder, "media.codecs.AudioDecoder");
+DEFINE_LOGGER(AudioResampler, "media.codecs.AudioResampler");
 
 inline  AVCodecID
 AudioCodecID2ffmpegDecoderID(AudioCodecID codec)

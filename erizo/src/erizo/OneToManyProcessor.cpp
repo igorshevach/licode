@@ -279,25 +279,6 @@ int OneToManyProcessor::deliverVideoData_(char* buf, int len) {
 	//ELOG_WARN("OneToManyProcessor::deliverVideoData(this=%p)_ pt=%d,ssrc=%x,seqn=%u subs=%d/pubs=%d", this,rtp->getPayloadType(),rtp->getSSRC(),rtp->getSeqNumber(),
 	//subscribers.size(), publishers.size() );
 
-
-	//	using namespace boost::posix_time;
-	//
-	//	static  ptime s_last(second_clock::universal_time());
-	//
-	//	ptime now(second_clock::universal_time());
-	//	time_duration diff = now - s_last;
-	//
-	//	if(diff.total_seconds() > 7){
-	//		for(publisher_it it = publishers.begin(); it != publishers.end(); it++ ){
-	//			if(it->second && it->second != publisher){
-	//				ELOG_WARN("switching to publisher %s. elapsed %d sec", it->first.c_str(),diff.total_seconds());
-	//				activatePublisher_(it->second);
-	//				s_last = now;
-	//				break;
-	//			}
-	//		}
-	//	}
-
 	std::map<std::string, sink_ptr>::iterator it;
 	for (it = subscribers.begin(); it != subscribers.end(); ++it) {
 		if((*it).second != NULL) {
