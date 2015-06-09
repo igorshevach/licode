@@ -11,9 +11,6 @@
 #ifndef WEBRTC_MODULES_RTP_RTCP_SOURCE_RTP_UTILITY_H_
 #define WEBRTC_MODULES_RTP_RTCP_SOURCE_RTP_UTILITY_H_
 
-#include <stddef.h> // size_t, ptrdiff_t
-#include <string.h>
-#include <stdint.h>
 
 //#include "webrtc/modules/rtp_rtcp/interface/rtp_rtcp_defines.h"
 //#include "webrtc/modules/rtp_rtcp/interface/receive_statistics.h"

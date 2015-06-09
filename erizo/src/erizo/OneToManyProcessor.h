@@ -5,14 +5,9 @@
 #ifndef ONETOMANYPROCESSOR_H_
 #define ONETOMANYPROCESSOR_H_
 
-#include <map>
-#include <string>
-
-#include "MediaDefinitions.h"
 #include "media/ExternalOutput.h"
-#include "logger.h"
-#include "rtp/RtpHeaders.h"
 #include "media/mixers/AudioSubStream.h"
+#include "media/mixers/AudioMixerUtils.h"
 
 namespace erizo{
 
@@ -76,14 +71,12 @@ private:
 
   // @igors@ audio mixer stuff
   //hardcoded PCMU/8000/1 ch audio codec info
-  enum {
-	  MAX_AUIDIO_DELAY_MS = 100,
-	  RTP_PACKET_SZ = 1500
-  };
+
+
+  const int max_audio_mixed_buffer_size_;
+  static const int RTP_PACKET_SZ = 1500;
 
   BUFFER_TYPE audioMixBuffer_,audioOutputBuffer_;
-
-  filetime::timestamp audioMixerTimestampLow_, audioMixerTimestampHigh_;
 
   typedef std::map<int,AudioMixingStream> AUDIO_INFO_REP;
 
@@ -92,17 +85,33 @@ private:
   AudioResampler            resampler_;
   AudioEncoder				audioEnc_;
   uint16_t                  audioSeqNumber_;
-  long ptimeToByteOffset(const filetime::timestamp &t){
-	  return (t - audioMixerTimestampLow_) * audioInfo_.bitRate / filetime::SECOND;
-  }
-  long ptimeToSampleNum(const filetime::timestamp &t){
- 	  return ptimeToByteOffset(t) / (audioInfo_.bitsPerSample / 8);
-   }
+  uint8_t				    payloadType_;
 
- // @igors
+  static const int MIN_BUCKET_SIZE = 20 * 10000;
+
+  AudioMixerStateManager audioMixerManager_;
+
+  long ptimeToByteOffset(const filetime::timestamp &t) const{
+	  return ptimeToDuratiom(t - audioMixerManager_.startTime());
+  }
+  long ptimeToDuratiom(const filetime::timestamp &ival) const{
+	  return (ival * audioInfo_.bitRate / filetime::SECOND);
+  }
+  long ftimeDurationToSampleNum(const filetime::timestamp &duration) const{
+ 	  return duration * audioInfo_.sampleRate / filetime::SECOND ;
+   }
+  long bitrateToDuration(const uint32_t &br) const{
+ 	  return br * filetime::SECOND / audioInfo_.bitRate;
+   }
+  int sendMixedAudio_(AudioMixingStream &provider,int samples);
+  int mixAudioWith_(AudioMixingStream &subs);
+
+  filetime::timestamp getCurrentTime() const;
+
+  // @igors
 
   int deliverAudioData_(char* buf, int len);
-	int deliverVideoData_(char* buf, int len);
+  int deliverVideoData_(char* buf, int len);
   int deliverFeedback_(char* buf, int len);
   void closeAll();
 

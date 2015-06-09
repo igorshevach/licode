@@ -2,6 +2,7 @@
  * VideoMixer.cpp
  */
 
+#include "../../pchheader.h"
 #include "VideoMixer.h"
 #include "VideoUtils.h"
 #include "../../WebRtcConnection.h"

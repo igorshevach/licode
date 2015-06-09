@@ -1,18 +1,20 @@
 /*
  * OneToManyProcessor.cpp
  */
-
+#include "pchheader.h"
 #include "OneToManyProcessor.h"
 #include "WebRtcConnection.h"
-#include "rtp/RtpHeaders.h"
-#include "boost/date_time/posix_time/posix_time.hpp"
+#include "media/mixers/AudioMixerUtils.h"
+
+//#include "boost/date_time/posix_time/posix_time.hpp"
 
 namespace erizo {
 
+
 DEFINE_LOGGER(OneToManyProcessor, "OneToManyProcessor");
 OneToManyProcessor::OneToManyProcessor()
-: audioMixerTimestampLow_(filetime::MIN),
-  audioMixerTimestampHigh_(filetime::MIN)
+: max_audio_mixed_buffer_size_(100),
+  audioMixerManager_(MIN_BUCKET_SIZE,filetime::milliseconds(max_audio_mixed_buffer_size_))
 {
 	ELOG_DEBUG ("OneToManyProcessor constructor");
 	feedbackSink_ = NULL;
@@ -25,218 +27,327 @@ OneToManyProcessor::~OneToManyProcessor() {
 
 int OneToManyProcessor::deliverAudioData_(char* buf, int len) {
 	//   ELOG_DEBUG ("OneToManyProcessor deliverAudio");
-	if (len <= 0)
-		return 0;
 
-	boost::unique_lock<boost::mutex> lock(myMonitor_);
-
-	RtpHeader* rtp = reinterpret_cast<RtpHeader*>(buf);
-
-	AUDIO_INFO_REP::iterator streamIt = audioStreamsInfos_.find(rtp->getSSRC());
-
-	RtcpHeader* head = reinterpret_cast<RtcpHeader*>(buf);
-	if(head->isRtcp() && head->packettype == RTCP_Sender_PT){
-		// TODO need to update seqnumbers for all RTCP traffic!!
-		ELOG_DEBUG ("OneToManyProcessor deliverAudio. update SR for stream %u", head->getSSRC() );
-		if(streamIt == audioStreamsInfos_.end()){
-			streamIt = audioStreamsInfos_.insert(std::make_pair(head->getSSRC(),AudioMixingStream())).first;
-		}
-		streamIt->second.sr_ = head->report.senderReport;
-	}
-
-	if(subscribers.empty())
-		return 0;
-
-	_PTR(publisher);
-
-
-	AUDIO_INFO_REP::iterator activePub = audioStreamsInfos_.find(publisher->getAudioSourceSSRC());
-
-	if( streamIt != audioStreamsInfos_.end() && activePub != audioStreamsInfos_.end() )
+	try
 	{
-		ELOG_DEBUG ("OneToManyProcessor deliverAudio. begin mix. stream %u payload type %d", rtp->getSSRC(), rtp->getPayloadType() );
+		if (len <= 0)
+			return 0;
 
-		if(!streamIt->second.stream_.isInitialized())
+		boost::unique_lock<boost::mutex> lock(myMonitor_);
+
+		RtpHeader* rtp = reinterpret_cast<RtpHeader*>(buf);
+
+		AUDIO_INFO_REP::iterator streamIt = audioStreamsInfos_.find(rtp->getSSRC());
+
+		RtcpHeader* head = reinterpret_cast<RtcpHeader*>(buf);
+		if(head->isRtcp() && head->packettype == RTCP_Sender_PT){
+			// TODO need to update seqnumbers for all RTCP traffic!!
+			ELOG_DEBUG ("::deliverAudioData_. update SR for stream %u", head->getSSRC() );
+
+			if(streamIt == audioStreamsInfos_.end()){
+				uint32_t id = audioMixerManager_.generateId();
+
+				ELOG_INFO("deliverAudioData_. adding mixer stream %u with id %u",head->getSSRC(), id);
+
+				streamIt = audioStreamsInfos_.insert(std::make_pair(head->getSSRC(),
+						AudioMixingStream(head->getSSRC(),
+								filetime::milliseconds(max_audio_mixed_buffer_size_),
+								id))).first;
+			}
+			streamIt->second.updateSR(*head);
+			//TODO reply with RR to all streams but publisher
+		}
+
+		if(subscribers.empty())
+			return 0;
+
+		_PTR(publisher);
+
+		//	if(publisher->getAudioSourceSSRC() != rtp->getSSRC())
+		//	return 0;
+
+
+		AUDIO_INFO_REP::iterator activePub = audioStreamsInfos_.find(publisher->getAudioSourceSSRC());
+
+		//	for(streamIt = audioStreamsInfos_.begin(); streamIt != audioStreamsInfos_.end() && activePub != audioStreamsInfos_.end()
+		//	; streamIt++)
+		if( !head->isRtcp() && streamIt != audioStreamsInfos_.end() && activePub != audioStreamsInfos_.end() )
 		{
-			AudioCodecInfo info;
-			switch(rtp->getPayloadType())
-			{
-			case PCMU_8000_PT:
-				info.codec = AUDIO_CODEC_PCM_U8;
-				info.sampleRate = 8000;
-				break;
-			default:
-				ELOG_WARN("OneToManyProcessor::deliverAudioData_. unsupported audio codec %d",rtp->getPayloadType());
-				break;
-			};
+			AudioMixingStream &subs = streamIt->second, &activeSubs = activePub->second;
 
-			if(info.codec != AUDIO_CODEC_UNDEFINED)
+			ELOG_DEBUG ("::deliverAudio. processing rtp packet stream=%u pt=%d time=%u sr time=%u", rtp->getSSRC(),
+					rtp->getPayloadType(), rtp->getTimestamp(), subs.getRtpTime() );
+
+			if(!subs.stream_.isInitialized())
 			{
+				WebRtcConnection *pConn = dynamic_cast<WebRtcConnection*>(publisher.get());
+
+				AudioCodecInfo info;
+				switch(rtp->getPayloadType())
+				{
+				case PCMU_8000_PT:
+					info.codec = AUDIO_CODEC_PCM_U8;
+					info.bitsPerSample = 8;
+					info.sampleRate = 8000;
+					info.channels = 1;
+					info.bitRate = info.sampleRate * info.channels * info.bitsPerSample / 8;
+					break;
+				default:
+					if(pConn) {
+						const SdpInfo &sdp = pConn->getRemoteSdpInfo();
+						const std::vector<RtpMap>& infos =sdp.getPayloadInfos();
+						for(std::vector<RtpMap>::const_iterator it = infos.begin(); it != infos.end(); it++ ){
+							if( rtp->getPayloadType() == it->payloadType ){
+								info.sampleRate = it->clockRate;
+								info.channels = it->channels;
+								break;
+							}
+						}
+						ELOG_DEBUG ("::deliverAudio. processing rtp packet stream=%u pt=%d time=%u sr time=%u", rtp->getSSRC(),
+								rtp->getPayloadType(), rtp->getTimestamp(), subs.getRtpTime() );
+					} else {
+						ELOG_WARN("::deliverAudioData_. unsupported audio codec %d",rtp->getPayloadType());
+						return -1;
+					}
+					break;
+				};
+
 				ELOG_DEBUG ("OneToManyProcessor deliverAudio. initializing mixing state . codec %d", info.codec );
-				_S(streamIt->second.stream_.initStream(info));
+				_S(subs.stream_.initStream(info));
 
 				if(audioEnc_.aCoderContext_ == NULL)
 				{
 					info.channels = audioInfo_.channels = 1;
 					info.sampleRate = audioInfo_.sampleRate = 8000;
-					info.bitsPerSample = audioInfo_.bitsPerSample = 16;
-					audioInfo_.bitRate = audioInfo_.bitsPerSample / 2 * audioInfo_.channels * audioInfo_.sampleRate;
-					audioInfo_.codec = AUDIO_CODEC_PCM_S16;
+					info.bitsPerSample = audioInfo_.bitsPerSample = 8;
+					info.bitRate = audioInfo_.bitRate = audioInfo_.bitsPerSample / 8 * audioInfo_.channels * audioInfo_.sampleRate;
+
+					switch(audioInfo_.bitsPerSample){
+					case 8:
+						audioInfo_.codec = AUDIO_CODEC_PCM_U8;
+						break;
+					case 16:
+						audioInfo_.codec = AUDIO_CODEC_PCM_S16;
+						break;
+					default:
+						ELOG_WARN("OneToManyProcessor::deliverAudioData_. cannot infer audio codec - unsupported bps");
+						return -1;
+						break;
+					};
 					_S(resampler_.initResampler(audioInfo_));
 					_S(audioEnc_.initEncoder(info));
-					audioMixBuffer_.resize(audioInfo_.bitRate);
+					//TODO bind payload type to encoded codec based on SdpInfo
+					payloadType_= rtp->getPayloadType();
 				}
-
 			}
-		}
 
-		if(streamIt->second.stream_.isInitialized() && audioEnc_.aCoderContext_)
-		{
-			AudioMixingStream &subs = streamIt->second;
-			// a) decode packet and mix it with the buffer
-			int decodedSamples = subs.stream_.decodeSteam((char*)buf,len);
-			if(decodedSamples > 0)
+			if(subs.stream_.isInitialized() && audioEnc_.aCoderContext_)
 			{
-				ELOG_DEBUG ("OneToManyProcessor deliverAudio. decoded %d audio samples", decodedSamples );
-
-				// find offset to write buffer in
-				uint32_t rtp_diff = rtp->getTimestamp() - subs.sr_.getRtpTimestamp();
-				uint32_t time_msecs = rtp_time_to_millisec(rtp_diff,subs.stream_.getSampleRate());
-
-				filetime::timestamp tStart = subs.sr_.getNtpTimestampAsFileTime() +	filetime::milliseconds( time_msecs ),
-						tEnd = tStart + subs.stream_.samplesToDuration(decodedSamples);
-
-				// handle wrap / init
-				if(audioMixerTimestampLow_ > 0)
+				// a) decode packet and mix it with the buffer
+				if(subs.decodeStream(rtp,(char*)buf,len))
 				{
-					audioMixerTimestampLow_ = audioMixerTimestampHigh_ = tStart;
+					_S(mixAudioWith_(subs));
+
+					// b) make sure we've waited enough to get all streams mixed
+					time_range t;
+					if(audioMixerManager_.getAvailableTime(t) >= 0){
+						int samples = ftimeDurationToSampleNum(t.second - t.first);
+
+						ELOG_INFO("sending %d samples",samples);
+
+						_S(sendMixedAudio_(activeSubs,samples));
+					}
 				}
-				_S(subs.addTimeRange(std::make_pair(tStart,tEnd)));
+				return 0;
 
-				audioMixerTimestampHigh_ = std::max(audioMixerTimestampHigh_,tEnd );
-
-				time_range t = std::make_pair(audioMixerTimestampLow_,audioMixerTimestampHigh_);
-				while(true){
-
-					buffer_range r;
-					if( subs.getBufferAndRange(t,r) == -1 )
-						break;
-
-					// mix
-					BUFFER_TYPE::iterator mixItStart = audioMixBuffer_.begin() + ptimeToByteOffset(t.first),
-							mixItEnd = audioMixBuffer_.begin() + ptimeToByteOffset(t.second);
-
-					if(mixItStart >= audioMixBuffer_.end())
-						break;
-					BUFFER_TYPE::size_type distance = audioMixBuffer_.end()-mixItStart;
-					if(r.second-r.first > distance){
-						r.second = r.first + distance;
-					}
-
-					//resample
-					if(resampler_.resample(&*r.first,r.second - r.first,subs.stream_.getAudioInfo()) > 0)
-					{
-						r.first = resampler_.resampleBuffer_.begin();
-						r.second = resampler_.resampleBuffer_.end();
-					}
-
-					if(mixItStart < mixItEnd){
-						//mix
-						for(; mixItStart < mixItEnd ; mixItStart++){
-							*mixItStart = (*mixItStart + *r.first++) / 2;
-						}
-					} else {
-						// check for new data reaching beyond current high marker
-						audioMixBuffer_.insert(mixItStart,r.first,r.second);
-					}
-					subs.updateRange(t);
-				}
-
-				// b) make sure we've waited enough to get all streams mixed
-				if( audioMixerTimestampHigh_ - audioMixerTimestampLow_ >= filetime::milliseconds(MAX_AUIDIO_DELAY_MS) ){
-
-					int samples = ptimeToSampleNum(audioMixerTimestampHigh_ - audioMixerTimestampLow_);
-					if(samples <= 0){
-						ELOG_WARN ("OneToManyProcessor deliverAudio. bsd number of samples - most probably indicates a bug");
-					}
-					int output_buffer_size = audioEnc_.calculateBufferSize(samples);
-					if(output_buffer_size <= 0){
-						ELOG_WARN ("OneToManyProcessor deliverAudio. av_samples_get_buffer_size failed ");
-						return -1;
-					}
-					audioOutputBuffer_.resize(output_buffer_size + rtp->getHeaderLength());
-
-					// c) encode part of the buffer and send it out
-
-					int rtpHdrLen = RtpHeader::MIN_SIZE;
-
-					AVPacket avpkt;
-					av_init_packet(&avpkt);
-
-					avpkt.data = &audioOutputBuffer_.at(rtpHdrLen);
-					avpkt.size = audioOutputBuffer_.size() - rtpHdrLen;
-
-					ELOG_DEBUG ("OneToManyProcessor deliverAudio. encoding %d mixed samples", samples);
-
-					_S(audioEnc_.encodeAudio(&audioMixBuffer_.at(0),samples,&avpkt));
-
-					ELOG_DEBUG ("OneToManyProcessor deliverAudio. sending away %d bytes", avpkt.size);
-
-					filetime::timestamp encodedChunkDuration =  filetime::SECOND / audioInfo_.sampleRate * samples;
-
-					//packetize
-					for( int offset = 0; offset < avpkt.size + rtpHdrLen; offset += RTP_PACKET_SZ )
-					{
-						RtpHeader *rtpOut = new (&audioOutputBuffer_.at(offset)) RtpHeader();
-
-						rtpOut->setPayloadType(rtp->getPayloadType());
-						rtpOut->setSeqNumber(audioSeqNumber_++);
-						rtpOut->setSSRC(publisher->getAudioSourceSSRC());
-						filetime::timestamp ftime_off = audioMixerTimestampLow_ - activePub->second.sr_.getNtpTimestampAsFileTime();
-						uint32_t rtp_timeoff = filetime_to_rtp_time( ftime_off, audioInfo_.sampleRate);
-						rtpOut->setTimestamp( activePub->second.sr_.getRtpTimestamp() + rtp_timeoff );
-						rtpOut->setMarker(true);
-
-						int payloadSize = std::min((int)RTP_PACKET_SZ,avpkt.size - offset);
-						// calculate timestamp for a packet
-						audioMixerTimestampLow_ += (payloadSize - rtpHdrLen) * encodedChunkDuration / avpkt.size;
-
-						std::map<std::string, sink_ptr>::iterator it;
-						for (it = subscribers.begin(); it != subscribers.end(); ++it) {
-							(*it).second->deliverAudioData((char*)&audioOutputBuffer_.at(offset),payloadSize);
-						}
-					}
-					int leftOver = std::max(0,filetime::milliseconds_from(audioMixerTimestampHigh_ - audioMixerTimestampLow_)) / 10 * audioInfo_.sampleRate / 100;
-
-					ELOG_DEBUG ("OneToManyProcessor deliverAudio. compacting decode buffer to %d bytes", leftOver );
-
-					audioOutputBuffer_.erase(audioOutputBuffer_.begin(),audioMixBuffer_.begin()+ ptimeToByteOffset(audioMixerTimestampLow_));
-
-					return 0;
-				}
 			}
 		}
-	}
-	else
-	{
-		ELOG_DEBUG ("OneToManyProcessor deliverAudio. no SR for stream %u", rtp->getSSRC() );
+		else
+		{
+			ELOG_DEBUG ("deliverAudio. no SR for stream %u", rtp->getSSRC() );
 
-		if(publisher->getAudioSourceSSRC() != rtp->getSSRC() ){
-			return 0;
+			if(publisher->getAudioSourceSSRC() != rtp->getSSRC() ){
+				return 0;
+			}
+		}
+		//ELOG_WARN("OneToManyProcessor::deliverAudioData_(this=%p)_ pt=%d,ssrc=%x,seqn=%u subs=%d/pubs=%d", this,rtp->getPayloadType(),rtp->getSSRC(),rtp->getSeqNumber(),
+		//subscribers.size(), publishers.size() );
+		std::map<std::string, sink_ptr>::iterator it;
+		for (it = subscribers.begin(); it != subscribers.end(); ++it) {
+			(*it).second->deliverAudioData(buf, len);
 		}
 	}
-
-	//ELOG_WARN("OneToManyProcessor::deliverAudioData_(this=%p)_ pt=%d,ssrc=%x,seqn=%u subs=%d/pubs=%d", this,rtp->getPayloadType(),rtp->getSSRC(),rtp->getSeqNumber(),
-	//subscribers.size(), publishers.size() );
-
-	std::map<std::string, sink_ptr>::iterator it;
-	for (it = subscribers.begin(); it != subscribers.end(); ++it) {
-		(*it).second->deliverAudioData(buf, len);
+	catch(std::exception &e){
+		ELOG_ERROR("::deliverAudio. exception %s",e.what());
+		throw;
 	}
-
 	return 0;
 }
 
+
+
+int OneToManyProcessor::mixAudioWith_(AudioMixingStream &subs){
+
+	ELOG_DEBUG("::mixAudioWith_(stream=%u). ",subs.getSSRC());
+
+	time_range too_old = std::make_pair(filetime::MIN / 2,getCurrentTime() - filetime::milliseconds(max_audio_mixed_buffer_size_));
+	subs.updateRange(too_old);
+
+	while(true){
+
+		time_range t;
+		buffer_range r;
+		if( subs.getBufferAndRange(t,r) == -1 )
+			break;
+
+		ELOG_DEBUG("::mixAudioWith_(stream=%u). range %lld-%lld ",subs.getSSRC(), t.first - audioMixerManager_.startTime(),
+				t.second - audioMixerManager_.startTime());
+
+		if(r.second <= r.first)
+			break;
+
+		audioMixerManager_.onStreamData(subs.getId(),t);
+
+		if(resampler_.needToResample(subs.stream_.getAudioInfo())){
+
+			//resample: some samples can be put back due to delay introduced by resample
+			int resampled = resampler_.resample(&*r.first,r.second - r.first,subs.stream_.getAudioInfo());
+			if(resampled < 0){
+				ELOG_WARN("mixAudioWith_(stream=%u) resample failed",subs.getSSRC());
+				return -1;
+			}
+
+			if(resampled == 0){
+				break;
+			}
+
+			if(resampled > 0)
+			{
+				BUFFER_TYPE::difference_type d=r.second - r.first;
+				if(d > resampled){
+					// adjust actual number of samples processed by resampler
+					filetime::timestamp update = subs.stream_.samplesToDuration(d-resampled);
+					ELOG_WARN("mixAudioWith_(stream=%u) resampled less samples than provided. adjust end time by %lld",subs.getSSRC(),update);
+					t.second -= update;
+				}
+				r.first = resampler_.resampleBuffer_.begin();
+				r.second = resampler_.resampleBuffer_.end();
+			}
+		}
+
+		// mix
+		BUFFER_TYPE::iterator mixItStart = audioMixBuffer_.begin() + std::min( (long)audioMixBuffer_.size(),ptimeToByteOffset(t.first)),
+				mixItEnd = audioMixBuffer_.begin() + std::min( (long)audioMixBuffer_.size(),ptimeToByteOffset(t.second));
+
+		BUFFER_TYPE::difference_type advanced(0);
+		switch(audioInfo_.bitsPerSample){
+		case 8:
+			advanced = audio_mix_utils< MixTraits<uint8_t> >::mix(r.first,r.second,mixItStart,mixItEnd,publishers.size());
+			break;
+		case 16:
+			advanced = audio_mix_utils< MixTraits<uint16_t> >::mix(r.first,	r.second,mixItStart,mixItEnd,publishers.size());
+			break;
+		default:
+			ELOG_WARN("mixAudioWith_. samples other than 8 and 16 bps aren't supported so far");
+			return -1;
+		};
+
+		// check for new data reaching beyond current high marker
+		audioMixBuffer_.insert(mixItStart + advanced,r.first + advanced,r.second);
+
+		subs.updateRange(t);
+		t.first = t.second;
+		t.second += filetime::SECOND;
+	}
+	return 0;
+}
+
+filetime::timestamp OneToManyProcessor::getCurrentTime() const{
+	if(!publisher){
+		return filetime::MIN;
+	}
+	return audioStreamsInfos_.find(publisher->getAudioSourceSSRC())->second.getCurrentTime();
+}
+
+int OneToManyProcessor::sendMixedAudio_(AudioMixingStream &provider,int samples) {
+
+	// sanity check
+	samples = std::min(samples,(int)audioMixBuffer_.size() / (audioInfo_.bitsPerSample / 8) );
+
+	int rtpHdrLen = RtpHeader::MIN_SIZE;
+
+	//TODO make sure encoder goes with current payloadType_
+	int output_buffer_size = audioEnc_.calculateBufferSize(samples);
+	if(output_buffer_size <= 0){
+		ELOG_WARN ("OneToManyProcessor sendMixedAudio_. av_samples_get_buffer_size failed ");
+		return -1;
+	}
+	audioOutputBuffer_.resize(output_buffer_size + rtpHdrLen);
+
+	AVPacket avpkt;
+	av_init_packet(&avpkt);
+
+	avpkt.data = &audioOutputBuffer_.at(rtpHdrLen);
+	avpkt.size = audioOutputBuffer_.size() - rtpHdrLen;
+
+	ELOG_DEBUG ("OneToManyProcessor sendMixedAudio_. encoding %d mixed samples. enc buf sz %d mix buf sz %d", samples,audioOutputBuffer_.size(),
+			audioMixBuffer_.size());
+
+	_S(audioEnc_.encodeAudio(&audioMixBuffer_.at(0),samples,&avpkt));
+
+	ELOG_DEBUG ("OneToManyProcessor sendMixedAudio_. sending away %d bytes", avpkt.size);
+
+	filetime::timestamp encodedChunkDuration =  filetime::SECOND / audioInfo_.sampleRate * samples;
+
+	BUFFER_TYPE::size_type processed = 0;
+
+	BUFFER_TYPE::iterator itEnd = audioOutputBuffer_.begin() + avpkt.size + rtpHdrLen;
+
+	filetime::timestamp mixerLowTime = audioMixerManager_.startTime();
+
+	const RtpHeader ctor;
+	//packetize
+	for( BUFFER_TYPE::iterator it = audioOutputBuffer_.begin() ; it < itEnd; it += RTP_PACKET_SZ ){
+
+		int payloadSize = std::min((BUFFER_TYPE::difference_type )RTP_PACKET_SZ,itEnd - it);
+
+		RtpHeader *rtpOut = reinterpret_cast<RtpHeader*>(&*it);
+		memcpy(rtpOut,&ctor,RtpHeader::MIN_SIZE);
+
+		rtpOut->setPayloadType(payloadType_);
+		rtpOut->setSeqNumber(audioSeqNumber_++);
+		rtpOut->setSSRC(publisher->getAudioSourceSSRC());
+		rtpOut->setMarker(true);
+
+		// calculate timestamp for a packet
+		filetime::timestamp ftime_off = mixerLowTime - provider.getNtpTime();
+		uint32_t rtp_timeoff = filetime_to_rtp_time( ftime_off, audioInfo_.sampleRate);
+		rtpOut->setTimestamp( provider.getRtpTime() + rtp_timeoff );
+
+		mixerLowTime += (payloadSize - rtpHdrLen) * encodedChunkDuration / avpkt.size;
+		processed += payloadSize - rtpHdrLen;
+
+		ELOG_DEBUG ("::sendMixedAudio_. sending rtp packet: ssrc=%u  time=%u seqn=%u pt=%u datalen=%d providerbb_clock=%u", rtpOut->getSSRC(),
+				rtpOut->getTimestamp(),
+				rtpOut->getSeqNumber(),
+				rtpOut->getPayloadType(),
+				payloadSize - rtpHdrLen,
+				provider.getCurrentTimeAsRtp());
+
+		for (std::map<std::string, sink_ptr>::iterator sendIt  = subscribers.begin(); sendIt != subscribers.end(); ++sendIt) {
+			(*sendIt).second->deliverAudioData((char*)&*it,payloadSize);
+		}
+	}
+
+	ELOG_DEBUG ("::sendMixedAudio_. shrink buffer sz %lu by %d bytes.", audioMixBuffer_.size(),processed);
+
+	audioMixerManager_.updateMixerLowBound(mixerLowTime);
+
+	audioMixBuffer_.erase(audioMixBuffer_.begin(),audioMixBuffer_.begin() + processed);
+
+	return 0;
+
+}
 
 
 int OneToManyProcessor::deliverVideoData_(char* buf, int len) {
@@ -291,7 +402,8 @@ int OneToManyProcessor::deliverVideoData_(char* buf, int len) {
 void OneToManyProcessor::addPublisher(MediaSource* webRtcConn,const std::string& peerId) {
 	ELOG_DEBUG("addPublisher %s",peerId.c_str());
 	boost::mutex::scoped_lock lock(myMonitor_);
-	publishers.insert(std::make_pair(peerId,source_ptr(webRtcConn)));
+	if(true == publishers.insert(std::make_pair(peerId,source_ptr(webRtcConn))).second){
+	}
 }
 
 void OneToManyProcessor::removePublisher(const std::string& peerId) {
@@ -302,6 +414,12 @@ void OneToManyProcessor::removePublisher(const std::string& peerId) {
 		if( publisher == found->second ){
 			publisher.reset();
 			feedbackSink_ = NULL;
+		}
+		AUDIO_INFO_REP::iterator mixStream = audioStreamsInfos_.find(found->second->getAudioSourceSSRC());
+		if(mixStream != audioStreamsInfos_.end()){
+			ELOG_INFO("removePublisher. mixer stream %u is removed",found->second->getAudioSourceSSRC());
+			audioMixerManager_.removeId(mixStream->second.getId());
+			audioStreamsInfos_.erase(mixStream);
 		}
 		publishers.erase(found);
 	}

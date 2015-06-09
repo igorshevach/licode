@@ -9,11 +9,6 @@
 #include "logger.h"
 
 
-extern "C" {
-#include <libavutil/avutil.h>
-#include <libavcodec/avcodec.h>
-#include <libavresample/avresample.h>
-}
 
 namespace erizo {
 
@@ -71,6 +66,12 @@ namespace erizo {
 	 /*
 	  * */
 	  int initResampler (const AudioCodecInfo& info);
+
+	  bool needToResample(const AudioCodecInfo &info) const {
+			if(info.channels == info_.channels && info.sampleRate == info_.sampleRate && info.codec == info_.codec)
+				return false;
+			return true;
+	  }
 
 	  BUFFER_TYPE resampleBuffer_;
   private:

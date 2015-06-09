@@ -1,8 +1,6 @@
 #ifndef TRANSPORT_H_
 #define TRANSPORT_H_
 
-#include <string.h>
-#include <cstdio>
 #include "NiceConnection.h"
 
 /**

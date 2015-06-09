@@ -5,9 +5,6 @@
 #ifndef VIDEOUTILS_H__
 #define VIDEOUTILS_H_
 
-#include <boost/cstdint.hpp>
-
-#include "logger.h"
 
 class VideoUtils{
 

@@ -36,6 +36,8 @@ namespace erizo{
 #define CN_32000_PT         106 // CN Audio Codec
 #define CN_48000_PT         107 // CN Audio Codec
 #define TEL_8000_PT         126 // Tel Audio Events
+#define RTCP_RESERVED_MIN 	72
+#define RTCP_RESERVED_MAX 	76
 
   //    0                   1                   2                   3
   //    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -138,8 +140,11 @@ namespace erizo{
       inline void setExtLength(uint16_t extensionLength) {
         extensionlength = htons(extensionLength);
       }
-      inline int getHeaderLength() {
+      inline int getHeaderLength() const{
         return MIN_SIZE + cc * 4 + extension * (4 + ntohs(extensionlength) * 4);
+      }
+      inline unsigned char *getExtPayload() {
+    	  return  extension ? ((unsigned char*)this + MIN_SIZE + cc * 4 + 4) : 0;
       }
   };
 
@@ -257,17 +262,6 @@ namespace erizo{
           uint32_t packetsent;
           uint32_t octetssent;
           struct receiverReport_t rrlist[1];
-
-          inline double getNtpTimestamp() {
-          	  return  ((ntptimestamp >> 32) + (ntptimestamp & 0xFFFFFFFF) / (double)0xFFFFFFFF);
-            }
-            inline uint64_t getNtpTimestampAsFileTime() {
-          	  return getNtpTimestamp() * 10000000;
-             }
-            inline uint32_t getRtpTimestamp() const{
-            	return ntohl(rtprts);
-            }
-
         } senderReport;
 // Generic NACK RTCP_RTP_FB + (FMT 1)rfc4585
 //      0                   1                   2                   3
@@ -309,7 +303,8 @@ namespace erizo{
       inline bool isRtcp(void) {        
         return (packettype == RTCP_Sender_PT ||
             packettype == RTCP_APP ||
-            isFeedback()            
+            isFeedback() ||
+            (packettype >= RTCP_RESERVED_MIN && packettype <= RTCP_RESERVED_MAX)
             );
       }
       inline uint8_t getPacketType(){
@@ -399,6 +394,22 @@ namespace erizo{
       inline void setFCI(uint32_t fci){
         report.pli.fci = htonl(fci);
       }
+      inline double getNtpTimestamp() const{
+    	      uint32_t fraction = ntohl(report.senderReport.ntptimestamp >> 32),
+    	    		  seconds = ntohl(report.senderReport.ntptimestamp & 0xFFFFFFFF);
+         	  return  (seconds + fraction / (double)0xFFFFFFFF);
+           }
+      	   inline double getNtpTimestampAsUnixTime() const{
+          	  return (getNtpTimestamp() - 2208988800);
+             }
+            inline uint64_t getNtpTimestampAsFileTime() const{
+            	//TODO find out why chrome ntp times aren't good
+         	  return getNtpTimestampAsUnixTime() * 10000000LL;
+            }
+           inline uint32_t getRtpTimestamp() const{
+           	return ntohl(report.senderReport.rtprts);
+           }
+
     };
 
 

@@ -2,12 +2,7 @@
  * SDPProcessor.cpp
  */
 
-#include <sstream>
-#include <stdio.h>
-#include <cstdlib>
-#include <cstring>
-
-#include "rtp/RtpHeaders.h"
+#include "pchheader.h"
 #include "SdpInfo.h"
 #include "StringUtil.h"
 
@@ -15,6 +10,14 @@ using std::endl;
 namespace erizo {
   DEFINE_LOGGER(SdpInfo, "SdpInfo");
 
+  // igors
+  inline bool payloadVectorSortFunc(const RtpMap &l,const RtpMap &r)
+  {
+	  if(l.mediaType != r.mediaType){
+		  return l.mediaType == AUDIO_TYPE || l.mediaType == VIDEO_TYPE;
+	  }
+	  return l.payloadType < r.payloadType;
+  }
 
   static const char *SDP_IDENTIFIER = "LicodeMCU";
   static const char *cand = "a=candidate:";
@@ -754,6 +757,8 @@ namespace erizo {
         }
       }
 
+      std::sort(payloadVector.begin(),payloadVector.end(),payloadVectorSortFunc);
+
       if(isFeedback != std::string::npos){
         std::vector<std::string> parts = stringutil::splitOneOf(line, " :", 2);
         unsigned int PT = strtoul(parts[1].c_str(), NULL, 10);
@@ -830,7 +835,7 @@ namespace erizo {
     return cryptoVector_;
   }
 
-  const std::vector<RtpMap>& SdpInfo::getPayloadInfos(){
+  const std::vector<RtpMap>& SdpInfo::getPayloadInfos() const{
     return payloadVector;
   }
  

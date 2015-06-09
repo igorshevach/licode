@@ -17,7 +17,6 @@
 //#include "webrtc/modules/rtp_rtcp/interface/rtp_rtcp_defines.h"
 #include "forward_error_correction.h"
 #include "rtp_utility.h"
-#include "boost/thread.hpp"
 //#include "webrtc/typedefs.h"
 
 namespace webrtc {

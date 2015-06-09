@@ -1,8 +1,6 @@
-#include <sys/time.h>
-
+#include "../pchheader.h"
 #include "ExternalOutput.h"
 #include "../WebRtcConnection.h"
-#include "../rtp/RtpHeaders.h"
 #include "../rtp/RtpVP8Parser.h"
 
 namespace erizo {

@@ -2,17 +2,9 @@
 #define AUDIO_SUBSTREAM_H_
 
 #include "../codecs/AudioCodec.h"
-#include "logger.h"
-#include <deque>
-#include "../../MediaDefinitions.h"
-#include "../../rtp/RtpHeaders.h"
 
 //#include "boost/date_time/posix_time/posix_time_types.hpp"
 
-extern "C" {
-#include <libavutil/avutil.h>
-#include <libavcodec/avcodec.h>
-}
 
 
 namespace erizo {
@@ -44,21 +36,6 @@ private:
 
 
 
-typedef std::pair<filetime::timestamp,filetime::timestamp> time_range;
-typedef std::pair<BUFFER_TYPE::iterator,BUFFER_TYPE::iterator> buffer_range;
-
-inline
-uint32_t rtp_time_to_millisec(const uint32_t &rtp,const uint32_t &scale){
-	uint64_t temp = rtp * 1000;
-	return temp / scale;
-}
-
-inline
-uint32_t filetime_to_rtp_time(const filetime::timestamp &t,const uint32_t &scale){
-	return filetime::milliseconds_from(t) * scale / 1000;
-}
-
-
 /*
  *  Mixed stream management.
  * */
@@ -67,15 +44,44 @@ uint32_t filetime_to_rtp_time(const filetime::timestamp &t,const uint32_t &scale
 	 DECLARE_LOGGER();
 	 //TODO disable assignment operators and copy c-tor
  public:
-	 AudioMixingStream();
+	 AudioMixingStream(uint32_t ssrc, const filetime::timestamp &tolerance,uint32_t id);
 	 int addTimeRange(const time_range &r);
 	 int getBufferAndRange(time_range &r,buffer_range &br);
 	 int updateRange(const time_range &r);
+	 int decodeStream(const RtpHeader *rtp,char *buf,int data);
 
-	 RtcpHeader::report_t::senderReport_t sr_;
+	 inline filetime::timestamp getNtpTime() const{
+		 return ntpTime_;
+	 }
+
+	 inline uint32_t getRtpTime() const {
+		 return rtpTime_;
+	 }
+
+	 inline uint32_t getSSRC() const{
+		 return ssrc_;
+	 }
+
+	 void updateSR(const RtcpHeader &head);
+
+	 filetime::timestamp getCurrentTime() const;
+
+	 uint32_t getCurrentTimeAsRtp() const;
+
+	 uint32_t getId() const{
+		 return id_;
+	 }
 	 AudioSubstream                       stream_;
  private:
 	 std::deque<time_range>               ranges_;
+	 uint32_t							  ssrc_;
+	 filetime::timestamp                  ntpTime_;
+	 uint32_t							  rtpTime_;
+	 const filetime::timestamp 			  tolerance_;
+	 filetime::timestamp 				  curTime_;
+	 uint32_t							  id_;
+
+	 static filetime::timestamp currentSystemTimeAsFileTime();
 
 	 buffer_range empty_range();
 	 void invalidate_times();

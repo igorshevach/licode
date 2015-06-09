@@ -1,8 +1,6 @@
 #ifndef ERIZO_COMMON_H_
 #define ERIZO_COMMON_H_
 
-#include <vector>
-
 namespace erizo{
 
 #define _PTR(x)\

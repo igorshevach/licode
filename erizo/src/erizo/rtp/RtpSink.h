@@ -8,14 +8,6 @@
 #ifndef RTPSINK_H_
 #define RTPSINK_H_
 
-#include <boost/asio.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread.hpp>
-#include <queue>
-
-#include "../MediaDefinitions.h"
-#include "../logger.h"
 
 namespace erizo {
 

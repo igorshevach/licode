@@ -1,10 +1,6 @@
 #ifndef __RTPPACKETQUEUE_H__
 #define __RTPPACKETQUEUE_H__
 
-#include <list>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread/mutex.hpp>
-#include "logger.h"
 
 namespace erizo{
 //forward declaration

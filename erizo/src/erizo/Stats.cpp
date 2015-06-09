@@ -3,6 +3,7 @@
  *
  */
 
+#include "pchheader.h"
 #include <sstream>
 
 #include "Stats.h"

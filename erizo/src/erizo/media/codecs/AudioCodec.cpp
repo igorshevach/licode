@@ -2,15 +2,9 @@
  * AudioCodec.pp
  */
 
+#include "../../pchheader.h"
 #include "AudioCodec.h"
 
-#include <cstdio>
-#include <cstdlib>
-#include <string.h>
-
-extern "C" {
-#include <libavutil/opt.h>
-}
 
 namespace erizo {
 
@@ -83,8 +77,8 @@ int AudioEncoder::initEncoder (const AudioCodecInfo& mediaInfo){
 	}
 
 	aCoderContext_->sample_fmt = aCoder_->sample_fmts[0];
-	//aCoderContext_->bit_rate = mediaInfo.bitRate;
-	//aCoderContext_->sample_rate = mediaInfo.sampleRate;
+	aCoderContext_->bit_rate = mediaInfo.bitRate;
+	aCoderContext_->sample_rate = mediaInfo.sampleRate;
 	aCoderContext_->channels = 1;
 	char errbuff[500];
 	int res = avcodec_open2(aCoderContext_, aCoder_, NULL);
@@ -93,6 +87,10 @@ int AudioEncoder::initEncoder (const AudioCodecInfo& mediaInfo){
 		ELOG_WARN("fail when opening input %s", errbuff);
 		return -1;
 	}
+	ELOG_DEBUG("initEncoder. srate=%d channels=%d samplefmt=%d",
+			aCoderContext_->sample_rate,
+			aCoderContext_->channels,
+			aCoderContext_->sample_fmt);
 	ELOG_DEBUG("Init audioEncoder end");
 	return 0;
 }
@@ -142,7 +140,7 @@ int AudioEncoder::encodeAudio (unsigned char* inBuffer, int nSamples, AVPacket* 
 		return -1;
 	}
 
-	int got_output;
+	int got_output = 0;
 	ret = avcodec_encode_audio2(aCoderContext_, pkt, &frame, &got_output);
 	if (ret < 0) {
 		ELOG_ERROR("error encoding audio frame");
@@ -209,13 +207,26 @@ int AudioDecoder::initDecoder (const AudioCodecInfo& info){
 		return -1;
 	}
 
-	aDecoderContext_->sample_fmt = AV_SAMPLE_FMT_S16;
+	switch(info.bitsPerSample)
+	{
+	case 8:
+		aDecoderContext_->sample_fmt = AV_SAMPLE_FMT_U8;
+		break;
+	case 16:
+		aDecoderContext_->sample_fmt = AV_SAMPLE_FMT_S16;
+		break;
+	};
 	aDecoderContext_->bit_rate = info.bitRate;
 	aDecoderContext_->sample_rate = info.sampleRate;
-	aDecoderContext_->channels = 1;
+	aDecoderContext_->channels = info.channels;
 
 	_S(avcodec_open2(aDecoderContext_, aDecoder_, NULL) < 0);
 
+	ELOG_INFO("initDecoder. br=%d srate=%d channels=%d samplefmt=%d",
+			aDecoderContext_->bit_rate,
+			aDecoderContext_->sample_rate,
+			aDecoderContext_->channels,
+			aDecoderContext_->sample_fmt);
 	return 0;
 }
 
@@ -307,8 +318,10 @@ int AudioResampler::initResampler (const AudioCodecInfo& info){
 }
 int AudioResampler::resample(unsigned char *data,int len,const AudioCodecInfo &info)
 {
-	if(info.channels == info_.channels && info.sampleRate != info_.sampleRate && info.codec != info_.codec)
+	if(!needToResample(info)){
 		return 0;
+	}
+
 	AVCodecID avcodecId = AudioCodecID2ffmpegDecoderID(info.codec);
 
 	AVCodec *pCodec = avcodec_find_decoder(avcodecId);
@@ -316,19 +329,37 @@ int AudioResampler::resample(unsigned char *data,int len,const AudioCodecInfo &i
 	AVFrame in = {0};
 
 	AVSampleFormat in_sample_fmt = info.codec == AUDIO_CODEC_PCM_U8 ? AV_SAMPLE_FMT_U8 : AV_SAMPLE_FMT_S16;
-
+	int bps = av_get_bytes_per_sample(in_sample_fmt);
+	if(bps <= 0){
+		ELOG_ERROR("resample. could not get bits per sample from sample fmt %d",in_sample_fmt);
+		return -1;
+	}
 	in.format = in_sample_fmt;
-	in.nb_samples = len / (av_get_bytes_per_sample(in_sample_fmt) * info.sampleRate * info.channels);
+	in.nb_samples = len / bps;
 	in.sample_rate = info.sampleRate;
 	in.channel_layout = info.channels;
 
-	int expected_buffer_size = av_samples_get_buffer_size(NULL, in.channel_layout,
+	int expected_buffer_size = len;
+	do{
+		expected_buffer_size = av_samples_get_buffer_size(NULL, in.channel_layout,
 			in.nb_samples, in_sample_fmt, 0);
 
-	if (expected_buffer_size != len) {
-		ELOG_ERROR("wrong input size %d expected %d",len,expected_buffer_size);
-		return -1;
+//		 if (expected_buffer_size > len) {
+//			ELOG_DEBUG("resample. adjusting input size %d expected %d channels=%d nb samples=%d sample fmt=%d",len,expected_buffer_size,
+//					in.channel_layout,
+//					in.nb_samples,
+//					in_sample_fmt);
+//		 }
+	}while(expected_buffer_size > len && in.nb_samples-- > 0);
+
+	if(in.nb_samples <= 0){
+		ELOG_DEBUG("could not find samples to resample. input len=%d sample size=%d",len, bps);
+		return 0;
+	} else {
+		ELOG_DEBUG("resample. processing %d samples ",in.nb_samples);
 	}
+
+	len = expected_buffer_size;
 
 	/* setup the data pointers in the AVFrame */
 	int ret = avcodec_fill_audio_frame(&in, in.channel_layout,

@@ -2,6 +2,7 @@
  * Srtpchannel.cpp
  */
 
+#include "pchheader.h"
 #include <srtp/srtp.h>
 #include <nice/nice.h>
 

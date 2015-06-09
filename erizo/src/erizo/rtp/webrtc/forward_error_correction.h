@@ -11,13 +11,10 @@
 #ifndef WEBRTC_MODULES_RTP_RTCP_SOURCE_FORWARD_ERROR_CORRECTION_H_
 #define WEBRTC_MODULES_RTP_RTCP_SOURCE_FORWARD_ERROR_CORRECTION_H_
 
-#include <list>
-#include <vector>
 
 //#include "webrtc/modules/rtp_rtcp/interface/rtp_rtcp_defines.h"
 //#include "webrtc/system_wrappers/interface/ref_count.h"
 #include "scoped_refptr.h"
-#include <stdint.h>
 
 
 #define IP_PACKET_SIZE 1500    // we assume ethernet

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 find_package(PkgConfig)
+
+include(PrecompiledHeaders.cmake)
+
 #functions
 function(test_lib LIB_NAME)
   if (${LIB_NAME} MATCHES "^.*-NOTFOUND")
@@ -20,6 +23,7 @@ include_directories("${ERIZO_SOURCE_DIR}" "${THIRD_PARTY_INCLUDE}")
 file(GLOB_RECURSE ERIZO_SOURCES "${ERIZO_SOURCE_DIR}/*.h" "${ERIZO_SOURCE_DIR}/*.c" "${ERIZO_SOURCE_DIR}/*.cpp" "${ERIZO_SOURCE_DIR}/*.cc")
 
 add_library(erizo SHARED ${ERIZO_SOURCES})
+add_precompiled_header(erizo pchheader.h FORCEINCLUDE )
 
 # GLIB
 find_package(Glib REQUIRED)

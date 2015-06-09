@@ -1,8 +1,6 @@
 #ifndef RTPFRAGMENTER_H_
 #define RTPFRAGMENTER_H_
 
-#include <queue>
-#include "logger.h"
 
 namespace erizo {
 

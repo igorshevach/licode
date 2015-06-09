@@ -5,15 +5,8 @@
 #ifndef NICECONNECTION_H_
 #define NICECONNECTION_H_
 
-#include <string>
-#include <vector>
-#include <queue>
-#include <boost/scoped_ptr.hpp>
-#include <boost/thread.hpp>
-
-#include "MediaDefinitions.h"
 #include "SdpInfo.h"
-#include "logger.h"
+
 
 typedef struct _NiceAgent NiceAgent;
 typedef struct _GMainContext GMainContext;

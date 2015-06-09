@@ -1,10 +1,6 @@
+#include "../pchheader.h"
 #include "ExternalInput.h"
 #include "../WebRtcConnection.h"
-#include <cstdio>
-
-#include <boost/cstdint.hpp>
-#include <sys/time.h>
-#include <arpa/inet.h>
 
 namespace erizo {
   DEFINE_LOGGER(ExternalInput, "media.ExternalInput");

@@ -1,15 +1,10 @@
 #ifndef DTLSCONNECTION_H_
 #define DTLSCONNECTION_H_
 
-#include <string.h>
-#include <boost/thread/mutex.hpp>
-#include <boost/asio/deadline_timer.hpp>
-#include <boost/asio.hpp>
-#include <boost/scoped_ptr.hpp>
 #include "dtls/DtlsSocket.h"
 #include "NiceConnection.h"
 #include "Transport.h"
-#include "logger.h"
+
 
 namespace erizo {
   class SrtpChannel;

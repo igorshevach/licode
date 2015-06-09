@@ -6,13 +6,8 @@
 #ifndef VIDEOMIXER_H_
 #define VIDEOMIXER_H_
 
-#include <map>
-#include <vector>
-
-#include "../../MediaDefinitions.h"
 #include "../MediaProcessor.h"
 
-#include "logger.h"
 
 
 namespace erizo{

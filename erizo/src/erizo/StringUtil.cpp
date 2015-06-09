@@ -1,3 +1,4 @@
+#include "pchheader.h"
 #include "StringUtil.h"
 
 namespace erizo {

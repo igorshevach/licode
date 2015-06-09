@@ -1,12 +1,6 @@
 #ifndef WEBRTCCONNECTION_H_
 #define WEBRTCCONNECTION_H_
 
-#include <string>
-#include <queue>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread.hpp>
-
-#include "logger.h"
 #include "SdpInfo.h"
 #include "MediaDefinitions.h"
 #include "Transport.h"
@@ -135,6 +129,13 @@ public:
     // webrtc::RtpHeader overrides.
     int32_t OnReceivedPayloadData(const uint8_t* payloadData, const uint16_t payloadSize,const webrtc::WebRtcRTPHeader* rtpHeader);
     bool OnRecoveredPacket(const uint8_t* packet, int packet_length);
+
+    const SdpInfo &getRemoteSdpInfo() const{
+    	return remoteSdp_;
+    }
+    const SdpInfo &getLocalSdpInfo() const{
+      	return localSdp_;
+      }
 
 private:
   static const int STATS_INTERVAL = 5000;

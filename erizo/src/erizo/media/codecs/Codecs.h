@@ -2,7 +2,6 @@
 #ifndef CODECS_H_
 #define CODECS_H_
 
-#include <boost/cstdint.hpp>
 #include "erizo_common.h"
 
 namespace erizo{
@@ -32,11 +31,15 @@ struct VideoCodecInfo {
 
 struct AudioCodecInfo {
 	AudioCodecInfo()
+	:sampleRate(0),
+	 channels(0),
+	 bitsPerSample(0)
 	{
 		this->codec = AUDIO_CODEC_UNDEFINED;
 	}
+
 	AudioCodecID codec;
-	int bitRate;
+	int bitRate; // in bytes!!!!
 	int sampleRate;
 	int channels;
 	int bitsPerSample;

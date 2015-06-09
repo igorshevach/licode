@@ -5,11 +5,6 @@
 #ifndef SDPINFO_H_
 #define SDPINFO_H_
 
-#include <string>
-#include <vector>
-#include <map>
-
-#include "logger.h"
 
 namespace erizo {
 /**
@@ -151,7 +146,7 @@ public:
     * Gets the payloadType information
     * @return A vector containing the PT-codec information
     */
-    const std::vector<RtpMap>& getPayloadInfos();
+    const std::vector<RtpMap>& getPayloadInfos() const;
     /**
      * Gets the actual SDP.
      * @return The SDP in string format.

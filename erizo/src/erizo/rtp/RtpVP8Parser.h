@@ -1,7 +1,6 @@
 #ifndef RTPVP8PARSER_H_
 #define RTPVP8PARSER_H_
 
-#include "logger.h"
 
 namespace erizo {
 

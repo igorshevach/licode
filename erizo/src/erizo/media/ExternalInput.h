@@ -1,22 +1,8 @@
 #ifndef EXTERNALINPUT_H_
 #define EXTERNALINPUT_H_
 
-#include <boost/scoped_ptr.hpp>
-#include <string> 
-#include <map>
-#include <queue>
-#include "../MediaDefinitions.h"
 #include "codecs/VideoCodec.h"
 #include "MediaProcessor.h"
-#include "boost/thread.hpp"
-#include "logger.h"
-
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/mathematics.h>
-#include <libavutil/time.h>
-}
 
 namespace erizo{
   class WebRtcConnection;

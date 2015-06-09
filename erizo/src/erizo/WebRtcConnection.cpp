@@ -2,12 +2,11 @@
  * WebRTCConnection.cpp
  */
 
-#include <cstdio>
-
+#include "pchheader.h"
 #include "WebRtcConnection.h"
 #include "DtlsTransport.h"
 #include "SdpInfo.h"
-#include "rtp/RtpHeaders.h"
+
 
 namespace erizo {
   DEFINE_LOGGER(WebRtcConnection, "WebRtcConnection");

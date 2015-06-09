@@ -4,7 +4,7 @@
 
 #ifndef MEDIADEFINITIONS_H_
 #define MEDIADEFINITIONS_H_
-#include <boost/thread/mutex.hpp>
+
 #include "erizo_common.h"
 
 namespace erizo{
@@ -26,7 +26,7 @@ struct dataPacket{
 
 class Monitor {
 protected:
-    boost::mutex myMonitor_;
+    mutable boost::mutex myMonitor_;
 };
 
 class FeedbackSink {
@@ -122,7 +122,7 @@ public:
         return sourcefbSink_;
     }
     virtual int sendPLI()=0;
-    unsigned int getVideoSourceSSRC (){
+    unsigned int getVideoSourceSSRC () const{
         boost::mutex::scoped_lock lock(myMonitor_);
         return videoSourceSSRC_;
     }
@@ -130,7 +130,7 @@ public:
         boost::mutex::scoped_lock lock(myMonitor_);
         videoSourceSSRC_ = ssrc;
     }
-    unsigned int getAudioSourceSSRC (){
+    unsigned int getAudioSourceSSRC () const{
         boost::mutex::scoped_lock lock(myMonitor_);
         return audioSourceSSRC_;
     }
@@ -154,9 +154,12 @@ namespace filetime
 {
 	typedef int64_t timestamp;
 
-	const timestamp SECOND = 10000000;
-	const timestamp MILLISEC = 10000;
-	const timestamp MIN = 0xFFFFFFFFFFFFFFFF;
+	const timestamp SECOND = 10000000LL;
+	const timestamp MILLISEC = 10000LL;
+	const timestamp MIN = std::numeric_limits<int64_t>::min();
+	const timestamp MAX = std::numeric_limits<int64_t>::max();
+	const timestamp NTP_TIME_BASE = 116444736000000000LL;
+
 	inline timestamp milliseconds(const int32_t & milli)
 	{
 		return milli * MILLISEC;
@@ -169,8 +172,26 @@ namespace filetime
 	{
 		return ft / MILLISEC;
 	}
-
+	inline timestamp ntp_time(const uint64_t &ntp){
+		return ((ntp >> 32) * (ntp & 0xFFFFFFFF) / (double)0xFFFFFFFF) * SECOND;
+	}
 }
+
+typedef std::pair<filetime::timestamp,filetime::timestamp> time_range;
+typedef std::pair<BUFFER_TYPE::iterator,BUFFER_TYPE::iterator> buffer_range;
+
+inline
+uint32_t rtp_time_to_millisec(const uint32_t &rtp,const uint32_t &scale){
+	uint64_t temp = rtp * 1000;
+	return temp / scale;
+}
+
+inline
+uint32_t filetime_to_rtp_time(const filetime::timestamp &t,const uint32_t &scale){
+	return filetime::milliseconds_from(t) * scale / 1000;
+}
+
+
 
 } /* namespace erizo */
 

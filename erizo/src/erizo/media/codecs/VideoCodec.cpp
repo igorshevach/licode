@@ -2,14 +2,9 @@
  * VideoCodec.pp
  */
 
+#include "../../pchheader.h"
 #include "VideoCodec.h"
 
-extern "C" {
-#include <libavutil/opt.h>
-}
-
-#include <cstdio>
-#include <string.h>
 
 namespace erizo {
 

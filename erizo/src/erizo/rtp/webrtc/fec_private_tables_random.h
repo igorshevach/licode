@@ -17,7 +17,6 @@
 
 // #include "webrtc/typedefs.h"
 
-#include <stdint.h>
 
 namespace {
 

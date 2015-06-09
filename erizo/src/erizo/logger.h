@@ -19,8 +19,6 @@
 #ifndef __ELOG_H__
 #define __ELOG_H__
 
-#include <stdlib.h>
-#include <stdio.h>
 
 #include <log4cxx/logger.h>
 #include <log4cxx/helpers/exception.h>

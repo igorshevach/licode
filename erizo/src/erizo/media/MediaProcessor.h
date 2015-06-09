@@ -1,22 +1,11 @@
 #ifndef MEDIAPROCESSOR_H_
 #define MEDIAPROCESSOR_H_
 
-#include <boost/cstdint.hpp>
-#include <sys/time.h>
-#include <arpa/inet.h>
-#include <string>
 
 #include "rtp/RtpVP8Parser.h"
-#include "../MediaDefinitions.h"
 #include "codecs/Codecs.h"
 #include "codecs/VideoCodec.h"
-#include "logger.h"
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-
-}
 
 namespace erizo {
 

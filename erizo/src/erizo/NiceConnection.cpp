@@ -2,6 +2,7 @@
  * NiceConnection.cpp
  */
 
+#include "pchheader.h"
 #include <nice/nice.h>
 #include <cstdio>
 #include <poll.h>

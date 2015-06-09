@@ -5,13 +5,8 @@
 #ifndef ONETOMANYTRANSCODER_H_
 #define ONETOMANYTRANSCODER_H_
 
-#include <map>
-#include <vector>
-
-#include "../MediaDefinitions.h"
 #include "MediaProcessor.h"
-#include "../logger.h"
-
+#include "media/mixers/AudioMixerUtils.h"
 
 namespace erizo{
 class WebRtcConnection;

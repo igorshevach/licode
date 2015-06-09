@@ -1,17 +1,10 @@
 #ifndef EXTERNALOUTPUT_H_
 #define EXTERNALOUTPUT_H_
 
-#include "../MediaDefinitions.h"
 #include "rtp/RtpPacketQueue.h"
 #include "rtp/webrtc/fec_receiver_impl.h"
 #include "MediaProcessor.h"
-#include "boost/thread.hpp"
-#include "logger.h"
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-}
 
 namespace erizo{
 #define UNPACKAGE_BUFFER_SIZE 200000
