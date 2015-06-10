@@ -45,14 +45,18 @@ int OneToManyProcessor::deliverAudioData_(char* buf, int len) {
 			ELOG_DEBUG ("::deliverAudioData_. update SR for stream %u", head->getSSRC() );
 
 			if(streamIt == audioStreamsInfos_.end()){
-				uint32_t id = audioMixerManager_.generateId();
 
-				ELOG_INFO("deliverAudioData_. adding mixer stream %u with id %u",head->getSSRC(), id);
+				streamIt = audioStreamsInfos_.find(head->getSSRC());
 
-				streamIt = audioStreamsInfos_.insert(std::make_pair(head->getSSRC(),
-						AudioMixingStream(head->getSSRC(),
-								filetime::milliseconds(max_audio_mixed_buffer_size_),
-								id))).first;
+				if(streamIt == audioStreamsInfos_.end()){
+
+					ELOG_INFO("deliverAudioData_. adding mixer stream %u",head->getSSRC());
+
+					streamIt = audioStreamsInfos_.insert(std::make_pair(head->getSSRC(),
+							AudioMixingStream(head->getSSRC(),
+									filetime::milliseconds(max_audio_mixed_buffer_size_)))).first;
+					audioMixerManager_.addStream(streamIt->second);
+				}
 			}
 			streamIt->second.updateSR(*head);
 			//TODO reply with RR to all streams but publisher
@@ -190,7 +194,7 @@ int OneToManyProcessor::mixAudioWith_(AudioMixingStream &subs){
 
 	ELOG_DEBUG("::mixAudioWith_(stream=%u). ",subs.getSSRC());
 
-	time_range too_old = std::make_pair(filetime::MIN / 2,getCurrentTime() - filetime::milliseconds(max_audio_mixed_buffer_size_));
+	time_range too_old = std::make_pair(filetime::MIN,std::max(audioMixerManager_.mixedTime(),getCurrentTime() - filetime::milliseconds(max_audio_mixed_buffer_size_)));
 	subs.updateRange(too_old);
 
 	while(true){
@@ -206,7 +210,7 @@ int OneToManyProcessor::mixAudioWith_(AudioMixingStream &subs){
 		if(r.second <= r.first)
 			break;
 
-		audioMixerManager_.onStreamData(subs.getId(),t);
+		_S(audioMixerManager_.onStreamData(subs,t));
 
 		if(resampler_.needToResample(subs.stream_.getAudioInfo())){
 
@@ -235,9 +239,31 @@ int OneToManyProcessor::mixAudioWith_(AudioMixingStream &subs){
 			}
 		}
 
+		BUFFER_TYPE::difference_type range_sz = std::distance(r.first,r.second);
+
 		// mix
-		BUFFER_TYPE::iterator mixItStart = audioMixBuffer_.begin() + std::min( (long)audioMixBuffer_.size(),ptimeToByteOffset(t.first)),
-				mixItEnd = audioMixBuffer_.begin() + std::min( (long)audioMixBuffer_.size(),ptimeToByteOffset(t.second));
+		long offStart = ptimeToByteOffset(t.first),	offEnd = offStart + range_sz;
+
+		// gap checking
+		if(offEnd > audioMixBuffer_.size()){
+			ELOG_DEBUG("mixAudioWith_(stream=%u) mixItEnd > audioMixBuffer_.end() by %d",subs.getSSRC(),offEnd - (long)audioMixBuffer_.size());
+
+			audioMixBuffer_.insert(audioMixBuffer_.end(),offEnd - audioMixBuffer_.size(),0);
+		}
+		if(offStart < 0){
+			ELOG_DEBUG("mixAudioWith_(stream=%u) mixItStart < audioMixBuffer_.begin() by %d",subs.getSSRC(),-offStart);
+
+			audioMixBuffer_.insert(audioMixBuffer_.begin(),-offStart,0);
+			offStart = 0;
+		}
+
+		BUFFER_TYPE::iterator mixItStart = audioMixBuffer_.begin() + offStart,mixItEnd = audioMixBuffer_.begin() + offEnd;
+
+		ELOG_DEBUG("mixAudioWith_(stream=%u) offsets: mixItStart=%u mixItEnd=%u total mix buf sz=%u",
+				subs.getSSRC(),
+				std::distance(audioMixBuffer_.begin(),mixItStart),
+				std::distance(audioMixBuffer_.begin(),mixItEnd),
+				audioMixBuffer_.size());
 
 		BUFFER_TYPE::difference_type advanced(0);
 		switch(audioInfo_.bitsPerSample){
@@ -271,8 +297,14 @@ filetime::timestamp OneToManyProcessor::getCurrentTime() const{
 
 int OneToManyProcessor::sendMixedAudio_(AudioMixingStream &provider,int samples) {
 
-	// sanity check
-	samples = std::min(samples,(int)audioMixBuffer_.size() / (audioInfo_.bitsPerSample / 8) );
+	filetime::timestamp mixerLowTime = audioMixerManager_.startTime();
+
+	// discontinuity check
+	int checkedForGapSamples = audioMixBuffer_.size() / (audioInfo_.bitsPerSample / 8);
+	if(checkedForGapSamples < samples){
+		mixerLowTime += sampleNumToFiltimeDuration(samples - checkedForGapSamples);
+		samples = checkedForGapSamples;
+	}
 
 	int rtpHdrLen = RtpHeader::MIN_SIZE;
 
@@ -303,7 +335,6 @@ int OneToManyProcessor::sendMixedAudio_(AudioMixingStream &provider,int samples)
 
 	BUFFER_TYPE::iterator itEnd = audioOutputBuffer_.begin() + avpkt.size + rtpHdrLen;
 
-	filetime::timestamp mixerLowTime = audioMixerManager_.startTime();
 
 	const RtpHeader ctor;
 	//packetize
@@ -418,7 +449,7 @@ void OneToManyProcessor::removePublisher(const std::string& peerId) {
 		AUDIO_INFO_REP::iterator mixStream = audioStreamsInfos_.find(found->second->getAudioSourceSSRC());
 		if(mixStream != audioStreamsInfos_.end()){
 			ELOG_INFO("removePublisher. mixer stream %u is removed",found->second->getAudioSourceSSRC());
-			audioMixerManager_.removeId(mixStream->second.getId());
+			audioMixerManager_.removeSubstream(mixStream->second);
 			audioStreamsInfos_.erase(mixStream);
 		}
 		publishers.erase(found);

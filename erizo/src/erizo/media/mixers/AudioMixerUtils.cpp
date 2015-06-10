@@ -7,41 +7,41 @@
 #include "../../pchheader.h"
 #include "AudioMixerUtils.h"
 
+
 namespace erizo{
 
 DEFINE_LOGGER(AudioMixerStateManager, "media.mixers.AudioMixerStateManager");
 
+
 AudioMixerStateManager::AudioMixerStateManager(const filetime::timestamp &min_buffer,const filetime::timestamp &max_buffer)
-:streamsMask_(0),start_(filetime::MAX / 2),  end_(filetime::MIN / 2),
- min_buffer_sz_(min_buffer), max_buffer_sz_(max_buffer),mixedBase_(filetime::MIN / 2) {
-	reset(end_);
+:start_(filetime::MAX),  end_(filetime::MIN),
+ min_buffer_sz_(min_buffer), max_buffer_sz_(max_buffer),mixedBase_(filetime::MIN){
 }
 
-void AudioMixerStateManager::onStreamData(uint32_t id,const time_range &t){
+inline bool sortFunc(const AudioMixingStream &l,const AudioMixingStream &r){
+	return l.getCurrentTime() < r.getCurrentTime();
+}
 
-	ELOG_DEBUG("onStreamData. stream id =%d. range %ld-%ld",id, t.first,t.second);
+int AudioMixerStateManager::onStreamData(AudioMixingStream &subs,const time_range &t){
 
-	if(sentinel_ < 0){
-		sentinel_ = t.first + min_buffer_sz_;
-	}
-	if(t.second >= sentinel_){
-		readyMask_ |= (1 << id);
-	} else {
-		readyMask_ &= ~(1 << id);
-	}
-	end_ = std::max(t.second,end_);
+	ELOG_DEBUG("onStreamData. stream id =%u. range %ld-%ld",subs.getSSRC(), t.first,t.second);
+
 	start_ = std::max(mixedBase_,std::min(t.first,start_));
+
+	ratings_.sort(sortFunc);
+
+	return 0;
 }
 
 int AudioMixerStateManager::getAvailableTime(time_range &t) const {
 	if(isReady()){
 		t.first = start_;
-		t.second = sentinel_;
+		t.second = ratings_.front().get().getCurrentTime();
 		ELOG_DEBUG("getAvailableTime. ready. range %ld-%ld",t.first,t.second);
 		return 0;
 	} else if (isTimeout()) {
 		t.first = start_;
-		t.second = start_ + (end_-start_)/2;
+		t.second = start_ + (ratings_.back().get().getCurrentTime() - start_)/2;
 		ELOG_DEBUG("getAvailableTime. overflow. range %ld-%ld",t.first,t.second);
 		return 0;
 	}
@@ -56,37 +56,41 @@ void AudioMixerStateManager::updateMixerLowBound(const filetime::timestamp &t){
 		return;
 	}
 	mixedBase_ = start_ = t;
-	end_ = std::max(end_,start_);
-	reset(start_ + min_buffer_sz_);
 }
 
-uint32_t AudioMixerStateManager::generateId() {
-	for(uint32_t id = 0 ; id < sizeof(streamsMask_) * 8; id++){
-		uint64_t bit = 1 << id;
-		if(~streamsMask_ & bit){
-			streamsMask_ |= bit;
-			return id;
-		}
-	}
-	return -1;
+inline bool is_same_stream(const AudioMixingStream &l,const AudioMixingStream &r){
+	return l.getSSRC() == r.getSSRC();
 }
 
-void AudioMixerStateManager::removeId(const uint32_t &id){
-	streamsMask_ &= ~(1 << id);
+void AudioMixerStateManager::addStream(AudioMixingStream &r){
+	ELOG_DEBUG("add stream %u",r.getSSRC());
+	ratings_.push_front(r);
+	ratings_.unique(is_same_stream);
+}
+
+
+void AudioMixerStateManager::removeSubstream(AudioMixingStream &r){
+	ELOG_DEBUG("removeSubstream stream %u",r.getSSRC());
+
+	struct lookup{
+		const AudioMixingStream &val_;
+		lookup(const AudioMixingStream& val): val_(val){}
+	 bool operator()(const AudioMixingStream& value) const {
+		 return is_same_stream(value,val_);
+	 }
+	}lookup(r);
+
+	ratings_.remove_if(lookup);
 }
 
 bool AudioMixerStateManager::isReady() const{
-	return (readyMask_ == streamsMask_);
+		return ratings_.front().get().getCurrentTime() - start_ >= min_buffer_sz_;
 }
 
 bool AudioMixerStateManager::isTimeout() const{
-	return (end_ - start_ >= max_buffer_sz_);
+	return (ratings_.back().get().getCurrentTime() - start_ >= max_buffer_sz_);
 }
 
-void AudioMixerStateManager::reset(const filetime::timestamp &t){
-	sentinel_ = t;
-	readyMask_ = 0ULL;
-}
 }
 
 

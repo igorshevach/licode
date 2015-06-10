@@ -103,6 +103,9 @@ private:
   long bitrateToDuration(const uint32_t &br) const{
  	  return br * filetime::SECOND / audioInfo_.bitRate;
    }
+  filetime::timestamp sampleNumToFiltimeDuration(const int &samples) const{
+ 	  return samples * filetime::SECOND / audioInfo_.sampleRate;
+   }
   int sendMixedAudio_(AudioMixingStream &provider,int samples);
   int mixAudioWith_(AudioMixingStream &subs);
 

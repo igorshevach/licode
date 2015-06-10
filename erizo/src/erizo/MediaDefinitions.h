@@ -156,8 +156,8 @@ namespace filetime
 
 	const timestamp SECOND = 10000000LL;
 	const timestamp MILLISEC = 10000LL;
-	const timestamp MIN = std::numeric_limits<int64_t>::min();
-	const timestamp MAX = std::numeric_limits<int64_t>::max();
+	const timestamp MIN = std::numeric_limits<int64_t>::min() / 2;
+	const timestamp MAX = std::numeric_limits<int64_t>::max() / 2;
 	const timestamp NTP_TIME_BASE = 116444736000000000LL;
 
 	inline timestamp milliseconds(const int32_t & milli)

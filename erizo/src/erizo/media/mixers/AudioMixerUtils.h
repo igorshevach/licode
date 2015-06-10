@@ -9,6 +9,8 @@
 #define MIXERUTILS_H_
 
 #include "erizo_common.h"
+#include "AudioSubStream.h"
+
 namespace erizo
 {
 template <typename SAMPLE_TRAITS>
@@ -115,10 +117,13 @@ private:
 
 /*
  *   Mixer state manager.
- *
+ *   states are: underflow , overflow, optimal
+ *    u-flow is when less than optimal mixer buffer space are available
+ *    ovflow is when there has been enough data however not all streams have contributed
+ *    optimal - can safely write some amount of mixed buffer
  * */
-class AudioMixerStateManager{
-	  DECLARE_LOGGER();
+class AudioMixerStateManager {
+	DECLARE_LOGGER();
  public:
 
 	  AudioMixerStateManager(const filetime::timestamp &min_buffer,
@@ -127,13 +132,13 @@ class AudioMixerStateManager{
 	  /*
 	   * called when a stream with <id> has been updated with data in range <t>
 	   */
-	  void onStreamData(uint32_t id,const time_range &t);
+	  int onStreamData(AudioMixingStream &subs,const time_range &t);
 
 	   /*
 	    *  get available range to write out.
 	    *  return values:
 	    *  0 for success
-	    *  < 0 on error
+	    *  < 0 on
 	    * */
 	  int getAvailableTime(time_range &t) const;
 
@@ -143,20 +148,23 @@ class AudioMixerStateManager{
 	  void updateMixerLowBound(const filetime::timestamp &t);
 
 	  /*
-	   *   mixed stream management
-	   *    returns Id >= 0 on success
-	   *    < 0 on error
-	   * */
-	  uint32_t generateId();
-
+	   * add a stream
+	   */
+	  void addStream(AudioMixingStream &subs);
 	  /*
-	   * reuse <id>
+	   * remove stream
 	   * */
-	  void removeId(const uint32_t &id);
+	  void removeSubstream(AudioMixingStream &subs);
+
 
 	  const filetime::timestamp &startTime() const {
 		  return start_;
 	  }
+
+	  const filetime::timestamp &mixedTime() const {
+		  return mixedBase_;
+	  }
+
  private:
 
 	  bool isReady() const;
@@ -168,12 +176,11 @@ class AudioMixerStateManager{
 	  	  	  	  	  	  end_,   // upper bound ---
 	  	  	  	  	  	  min_buffer_sz_, // min buffer size before we can send
 	  	  	  	  	  	  max_buffer_sz_, // max buffer range available
-	  	  	  	  	  	  mixedBase_, // mixed basetime - low threshold cannot go lower than that
-	  	  	  	  	  	  sentinel_; // currently mixed region
-	  // TODO replace 64 bit ints with bitsets
-	  uint64_t readyMask_,streamsMask_;
+	  	  	  	  	  	  mixedBase_; // mixed basetime - low threshold cannot go lower than that
 
-	  void reset(const filetime::timestamp &t);
+	  typedef std::list< std::reference_wrapper<const AudioMixingStream> > RATING_LIST;
+
+	  RATING_LIST ratings_;
  };
 
 

@@ -6,6 +6,7 @@ namespace erizo{
 DEFINE_LOGGER(AudioSubstream, "media.mixers.AudioSubstream");
 DEFINE_LOGGER(AudioMixingStream, "media.mixers.AudioMixingStream");
 
+
 int AudioSubstream::initStream(const AudioCodecInfo &info){
 	_S(audioDec_.initDecoder(info));
 	info_ = info;
@@ -67,11 +68,11 @@ const AudioCodecInfo &AudioSubstream::getAudioInfo() const
  * AudioMixingStream implementation
  * */
 
-AudioMixingStream::AudioMixingStream(uint32_t ssrc,const filetime::timestamp &tolerance,uint32_t id)
+AudioMixingStream::AudioMixingStream(uint32_t ssrc,const filetime::timestamp &tolerance)
 :ssrc_(ssrc),
  ntpTime_(filetime::MIN),
  tolerance_(tolerance),
- id_(id)
+ curTime_(filetime::MIN)
 {
 	invalidate_times();
 }
@@ -218,5 +219,4 @@ filetime::timestamp AudioMixingStream::currentSystemTimeAsFileTime(){
 uint32_t AudioMixingStream::getCurrentTimeAsRtp() const{
 	return getRtpTime() + filetime_to_rtp_time(curTime_ - ntpTime_,stream_.getSampleRate());
 }
-
 }
