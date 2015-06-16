@@ -10,13 +10,16 @@ EXTRAS=$ROOT/extras
 
 killall -9 node nodejs
 
+
 rm -f  $ROOT/erizo_controller/erizoAgent/*.log 
 
 export PATH=$PATH:/usr/local/sbin
 
-if ! pgrep -f rabbitmq; then
-  sudo echo
+if ! pgrep -f rabbitmq > /dev/null ; then
+  sudo echo "starting rabbitmq-server..."
   sudo rabbitmq-server > $BUILD_DIR/rabbit.log &
+else
+  echo "no need to start rabbitmq server"
 fi
 
 cd $ROOT/nuve
@@ -35,7 +38,7 @@ cd  $ROOT/erizo_controller/erizoClient/tools
 cd $ROOT/erizo_controller
 ./initErizo_controller.sh
 
-if [ !$# ] ||  [ $1 != 'DEBUG' ]; then
+if [ $# == '0' ] ||  [ $1 != 'DEBUG' ]; then
 	echo "launching agent."
 	./initErizo_agent.sh
 else

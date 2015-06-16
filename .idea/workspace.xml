@@ -2,21 +2,30 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="8169f0ed-be00-473b-be48-ca31258a2310" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/MediaDefinitions.h" afterPath="$PROJECT_DIR$/erizo/src/erizo/MediaDefinitions.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizoAPI/.cproject" afterPath="$PROJECT_DIR$/erizoAPI/.cproject" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo_controller/.gitignore" afterPath="$PROJECT_DIR$/erizo_controller/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/media/codecs/AudioCodec.cpp" afterPath="$PROJECT_DIR$/erizo/src/erizo/media/codecs/AudioCodec.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/media/codecs/AudioCodec.h" afterPath="$PROJECT_DIR$/erizo/src/erizo/media/codecs/AudioCodec.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/media/mixers/AudioMixerUtils.h" afterPath="$PROJECT_DIR$/erizo/src/erizo/media/mixers/AudioMixerUtils.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/media/mixers/AudioSubStream.cpp" afterPath="$PROJECT_DIR$/erizo/src/erizo/media/mixers/AudioSubStream.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/media/mixers/AudioSubStream.h" afterPath="$PROJECT_DIR$/erizo/src/erizo/media/mixers/AudioSubStream.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/media/codecs/Codecs.h" afterPath="$PROJECT_DIR$/erizo/src/erizo/media/codecs/Codecs.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizoAPI/ExternalInput.cc" afterPath="$PROJECT_DIR$/erizoAPI/ExternalInput.cc" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizoAPI/ExternalOutput.cc" afterPath="$PROJECT_DIR$/erizoAPI/ExternalOutput.cc" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizoAPI/OneToManyProcessor.cc" afterPath="$PROJECT_DIR$/erizoAPI/OneToManyProcessor.cc" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/OneToManyProcessor.cpp" afterPath="$PROJECT_DIR$/erizo/src/erizo/OneToManyProcessor.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/OneToManyProcessor.h" afterPath="$PROJECT_DIR$/erizo/src/erizo/OneToManyProcessor.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizoAPI/OneToManyProcessor.h" afterPath="$PROJECT_DIR$/erizoAPI/OneToManyProcessor.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/media/OneToManyTranscoder.cpp" afterPath="$PROJECT_DIR$/erizo/src/erizo/media/OneToManyTranscoder.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizoAPI/OneToManyTranscoder.h" afterPath="$PROJECT_DIR$/erizoAPI/OneToManyTranscoder.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo_controller/erizoClient/src/Room.js" afterPath="$PROJECT_DIR$/erizo_controller/erizoClient/src/Room.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo_controller/erizoController/erizoController.js" afterPath="$PROJECT_DIR$/erizo_controller/erizoController/erizoController.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo_controller/erizoJS/erizoJSController.js" afterPath="$PROJECT_DIR$/erizo_controller/erizoJS/erizoJSController.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/extras/basic_example/public/index.html" afterPath="$PROJECT_DIR$/extras/basic_example/public/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizoAPI/OneToManyTranscoder.cc" afterPath="$PROJECT_DIR$/erizoAPI/OneToManyTranscoder.cc" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/SdpInfo.cpp" afterPath="$PROJECT_DIR$/erizo/src/erizo/SdpInfo.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/SdpInfo.h" afterPath="$PROJECT_DIR$/erizo/src/erizo/SdpInfo.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizoAPI/WebRtcConnection.cc" afterPath="$PROJECT_DIR$/erizoAPI/WebRtcConnection.cc" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo/src/erizo/WebRtcConnection.cpp" afterPath="$PROJECT_DIR$/erizo/src/erizo/WebRtcConnection.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizoAPI/addon.cc" afterPath="$PROJECT_DIR$/erizoAPI/addon.cc" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo_controller/initErizo_agent.sh" afterPath="$PROJECT_DIR$/erizo_controller/initErizo_agent.sh" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/initLicode.sh" afterPath="$PROJECT_DIR$/scripts/initLicode.sh" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo_controller/erizoController/roomController.js" afterPath="$PROJECT_DIR$/erizo_controller/erizoController/roomController.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/extras/basic_example/public/script.js" afterPath="$PROJECT_DIR$/extras/basic_example/public/script.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo_controller/erizoAgent/log4cxx.properties" afterPath="$PROJECT_DIR$/erizo_controller/erizoAgent/log4cxx.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/erizo_controller/common/logger.js" afterPath="$PROJECT_DIR$/erizo_controller/common/logger.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="licode.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -37,30 +46,38 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="erizoJSController.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/erizo_controller/erizoJS/erizoJSController.js">
+      <file leaf-file-name="launch.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/erizo_controller/erizoAgent/launch.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-9.0">
-              <caret line="186" column="25" selection-start-line="186" selection-start-column="9" selection-end-line="186" selection-end-column="25" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="parser.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/node_modules/amqp/lib/parser.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-11.612904">
-              <caret line="24" column="22" selection-start-line="24" selection-start-column="22" selection-end-line="24" selection-end-column="22" />
+            <state vertical-scroll-proportion="-0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="amqper.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/erizo_controller/common/amqper.js">
+      <file leaf-file-name="log4cxx.properties" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/erizo_controller/erizoAgent/log4cxx.properties">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.4434524">
+              <caret line="27" column="39" selection-start-line="27" selection-start-column="39" selection-end-line="27" selection-end-column="39" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="installErizo_controller.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/erizo_controller/installErizo_controller.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="10" column="12" selection-start-line="10" selection-start-column="12" selection-end-line="10" selection-end-column="12" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="initErizo_controller.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/erizo_controller/initErizo_controller.sh">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
@@ -69,53 +86,31 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="erizoController.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/erizoController.js">
+      <file leaf-file-name="initErizo_agent.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/erizo_controller/initErizo_agent.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-18.67742">
-              <caret line="655" column="49" selection-start-line="655" selection-start-column="35" selection-end-line="655" selection-end-column="49" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="11" column="0" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="roomController.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/roomController.js">
+      <file leaf-file-name="initLicode.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scripts/initLicode.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-9.129032">
-              <caret line="176" column="0" selection-start-line="176" selection-start-column="0" selection-end-line="176" selection-end-column="0" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
+            <state vertical-scroll-proportion="-5.72">
+              <caret line="25" column="13" selection-start-line="25" selection-start-column="13" selection-end-line="25" selection-end-column="13" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="erizo-4c7530d2-55f8-4c46-bd70-84b806897a3d.log" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-4c7530d2-55f8-4c46-bd70-84b806897a3d.log">
+      <file leaf-file-name="build.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/erizoAPI/build.sh">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-13.102417">
+            <state vertical-scroll-proportion="0.0">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="script.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/extras/basic_example/public/script.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="17" column="31" selection-start-line="17" selection-start-column="17" selection-end-line="17" selection-end-column="31" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Room.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Room.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="461" column="40" selection-start-line="461" selection-start-column="27" selection-end-line="461" selection-end-column="40" />
               <folding />
             </state>
           </provider>
@@ -129,22 +124,57 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-18d81443-ba8f-9773-fb9a-7bc329e6bad0.log" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-a1f238e7-9826-670b-a960-a5d30f5a6695.log" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-27ca40f3-e431-bf12-dc14-35813e92fadb.log" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-15ef18b3-7830-1251-41d4-05861e999d74.log" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-56df522f-cf81-0b5b-dc5b-daf6fc344338.log" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-37c3c977-29bb-20bf-96e0-45405891e6cd.log" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-691848cd-e2ea-945f-32c2-4ae47c6535de.log" />
-        <option value="$PROJECT_DIR$/extras/basic_example/public/index.html" />
-        <option value="$PROJECT_DIR$/extras/basic_example/public/script.js" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoClient/src/Room.js" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-a0e28bf6-95da-2057-eb24-6f828b8aee3e.log" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-406f5aaa-b1c7-df4d-3335-4680e11adab1.log" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-11b7139b-75d9-309f-3b0b-d9211c5e6d8f.log" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoJS/erizoJSController.js" />
-        <option value="$PROJECT_DIR$/erizo_controller/erizoController/erizoController.js" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-1975cf30-bf12-359d-5e52-bb44dc505a3f.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-e8f7a738-ab59-14d1-695d-8ee480dd1423.log" />
         <option value="$PROJECT_DIR$/erizo_controller/erizoController/roomController.js" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-5820517d-2e67-d1b0-f007-bd86c2e0eecf.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-d1a3b273-315d-dadb-d40e-4d45599b3783.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-4cb29b37-9462-83a8-b8f8-ac8a362fa368.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-e09c9898-d03e-18fa-30aa-b56539fe449b.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-a6eb86ff-9459-6cd8-eb85-effd1e9f6769.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-88d30dfb-f1be-23d4-a8ea-ac5f4c6d7fc3.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-6539a61e-9835-1f3e-2118-bde8ca77b022.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-ef1e4270-d40b-3ac9-8dd8-72f31657d008.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-1476032f-0dfd-b477-6914-d1fd788f0a5c.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-c91a8cb6-17f9-874a-3de0-a5c1b0d9a9e9.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-40950b12-41d5-4ae2-aa77-33257a55f72d.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-1ef8201f-6251-1595-30ce-4cda08fc4f12.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-3666ea6e-ceb7-06f4-a01c-ccdca4ef394e.log" />
+        <option value="$PROJECT_DIR$/erizo/build/CMakeFiles/2.8.12.2/PrecompiledHeaders.cmake" />
+        <option value="$PROJECT_DIR$/erizo/src/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/erizo/src/erizo/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/erizo/src/erizo/PrecompiledHeaders.cmake" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-be0427ec-051f-ace5-755b-04189186ab3b.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-8af604c4-572f-d323-c631-f4e90c6abdd8.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-4e04a135-1676-a561-2f09-264c6e634ee6.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-47e9f6e2-229f-941c-b9d2-9d6ebefcf38f.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-26df8065-57ce-986b-2fe3-0efcb6dd7851.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-f98e20d3-e150-6d67-5168-11ff7da3f42f.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-bc51a46e-191e-bcd5-4a67-4b9cbedd6d89.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-2cb53d8b-91e8-203c-d410-9622d6793cb5.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/common/logger.js" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-9f203ca0-0815-9aa3-3d2c-33939c79a2f0.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-82388bf7-57c4-d1da-7bf0-03893116c62c.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/.gitignore" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-34a7a604-f198-c7a8-8c7c-0f4848db9f55.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-cfc4619b-4037-f427-abdb-45d50d90984a.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-42203317-999f-716c-b513-aab1f9a32983.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-089eb501-ac58-6dfe-3929-bb24d3fac2af.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-74104468-9819-ffdc-c02d-c7bae2ed8de3.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-68ff76f2-7e38-7818-a138-e67d972e5fa1.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/initErizo_agent.sh" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-05d4e96b-3c7c-dda1-2d94-11f5cd8a6c4f.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-6c15e328-8e79-6234-1e5e-d8dd89ad1dba.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoJS/log4cxx.properties" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-c9f0bf44-ddb7-863a-d9a9-643e65e36bf9.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-2d57d62a-5446-4894-4612-536575facf22.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-1b97629c-fdbd-38ac-4491-4f4c87dbe51e.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-c4a8bca2-7d9d-ad06-0629-af41085d1544.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-de5dcb2d-f50f-945e-ccbe-32749b105412.log" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-eaebfea9-d2df-705f-ffd1-92130c4e0939.log" />
+        <option value="$PROJECT_DIR$/scripts/initLicode.sh" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/log4cxx.properties" />
+        <option value="$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-f8b09011-dd42-6eac-a709-32bd20bfe0c2.log" />
       </list>
     </option>
   </component>
@@ -156,10 +186,10 @@
     <order />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="189" />
-    <option name="y" value="65" />
-    <option name="width" value="1600" />
-    <option name="height" value="1000" />
+    <option name="x" value="241" />
+    <option name="y" value="148" />
+    <option name="width" value="1582" />
+    <option name="height" value="800" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -184,8 +214,8 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -214,7 +244,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="erizo_controller" />
+              <option name="myItemId" value="scripts" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -229,28 +259,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="erizo_controller" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="erizoJS" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="licode" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="licode" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="erizo_controller" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="erizoController" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -281,6 +289,15 @@
     <property name="HbShouldOpenHtmlAsHb" value="" />
     <property name="FullScreen" value="false" />
     <property name="recentsLimit" value="5" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/erizo_controller/erizoJS" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/erizo/src/erizo" />
+      <recent name="$PROJECT_DIR$/erizo/cmake" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration default="true" type="DartCommandLineRunConfigurationType" factoryName="Dart Command Line Application">
@@ -350,26 +367,26 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="189" y="65" width="1600" height="1000" extended-state="0" />
+    <frame x="241" y="148" width="1582" height="800" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.46273637" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21875" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22123894" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.43540183" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -388,349 +405,10 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/erizo_controller/installErizo_controller.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoJS/erizoJSController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="223" column="48" selection-start-line="223" selection-start-column="30" selection-end-line="223" selection-end-column="67" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Stream.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="161" column="0" selection-start-line="161" selection-start-column="0" selection-end-line="161" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Events.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="59" selection-start-line="18" selection-start-column="59" selection-end-line="18" selection-end-column="59" />
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/erizoController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="472" column="47" selection-start-line="472" selection-start-column="39" selection-end-line="472" selection-end-column="47" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/extras/chrome-extension/script.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/roomController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="68" column="34" selection-start-line="68" selection-start-column="34" selection-end-line="68" selection-end-column="34" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoJS/erizoJS.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="89" column="1038" selection-start-line="89" selection-start-column="1038" selection-end-line="89" selection-end-column="1038" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizoAPI/MediaDefinitions.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="13" column="21" selection-start-line="13" selection-start-column="21" selection-end-line="13" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Stream.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="150" column="26" selection-start-line="150" selection-start-column="26" selection-end-line="151" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoAgent/erizoAgent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="29" column="25" selection-start-line="29" selection-start-column="23" selection-end-line="29" selection-end-column="25" />
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoJS/erizoJSController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="214" column="22" selection-start-line="214" selection-start-column="22" selection-end-line="214" selection-end-column="22" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/erizoController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="560" column="43" selection-start-line="560" selection-start-column="43" selection-end-line="560" selection-end-column="43" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/extras/chrome-extension/script.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="13" column="35" selection-start-line="13" selection-start-column="35" selection-end-line="13" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/roomController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="25" column="30" selection-start-line="25" selection-start-column="30" selection-end-line="25" selection-end-column="30" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoJS/erizoJS.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="89" column="1501" selection-start-line="89" selection-start-column="1497" selection-end-line="89" selection-end-column="1501" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizoAPI/MediaDefinitions.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="13" column="21" selection-start-line="13" selection-start-column="21" selection-end-line="13" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Stream.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="150" column="26" selection-start-line="150" selection-start-column="26" selection-end-line="151" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoAgent/erizoAgent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="29" column="25" selection-start-line="29" selection-start-column="23" selection-end-line="29" selection-end-column="25" />
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoJS/erizoJSController.js">
+    <entry file="file://$PROJECT_DIR$/erizoAPI/build.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/erizoController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="560" column="43" selection-start-line="560" selection-start-column="43" selection-end-line="560" selection-end-column="43" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/extras/chrome-extension/script.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="13" column="35" selection-start-line="13" selection-start-column="35" selection-end-line="13" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/roomController.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="25" column="30" selection-start-line="25" selection-start-column="30" selection-end-line="25" selection-end-column="30" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoJS/erizoJS.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="89" column="1501" selection-start-line="89" selection-start-column="1497" selection-end-line="89" selection-end-column="1501" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizoAPI/MediaDefinitions.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizoAPI/MediaDefinitions.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizoAPI/MediaDefinitions.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="13" column="21" selection-start-line="13" selection-start-column="21" selection-end-line="13" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/licode_config.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="65" column="0" selection-start-line="65" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/licode_default.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3107089">
-          <caret line="69" column="10" selection-start-line="69" selection-start-column="10" selection-end-line="69" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoAgent/erizoAgent.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="29" column="25" selection-start-line="29" selection-start-column="23" selection-end-line="29" selection-end-column="25" />
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/extras/chrome-extension/script.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/views/View.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Stream.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="161" column="0" selection-start-line="161" selection-start-column="0" selection-end-line="161" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Connection.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.69536424">
-          <caret line="21" column="42" selection-start-line="21" selection-start-column="42" selection-end-line="21" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Events.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="59" selection-start-line="18" selection-start-column="59" selection-end-line="18" selection-end-column="59" />
-          <folding>
-            <element signature="n#!!doc" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/extras/basic_example/public/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="12" column="53" selection-start-line="12" selection-start-column="39" selection-end-line="12" selection-end-column="53" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/extras/basic_example/public/erizo.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.5408516">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/Stream.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.15650173">
-          <caret line="11" column="18" selection-start-line="11" selection-start-column="9" selection-end-line="11" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/dist/erizo.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoJS/erizoJS.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3364929">
-          <caret line="87" column="3" selection-start-line="87" selection-start-column="3" selection-end-line="87" selection-end-column="3" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/installErizo_controller.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/extras/basic_example/public/script.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="17" column="31" selection-start-line="17" selection-start-column="17" selection-end-line="17" selection-end-column="31" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Room.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="461" column="40" selection-start-line="461" selection-start-column="27" selection-end-line="461" selection-end-column="40" />
           <folding />
         </state>
       </provider>
@@ -739,7 +417,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -747,7 +424,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-11.272727">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -755,7 +431,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -763,42 +438,320 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-11.612904">
           <caret line="24" column="22" selection-start-line="24" selection-start-column="22" selection-end-line="24" selection-end-column="22" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/erizoController.js">
+    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Room.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-18.67742">
-          <caret line="655" column="49" selection-start-line="655" selection-start-column="35" selection-end-line="655" selection-end-column="49" />
-          <folding />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="486" column="42" selection-start-line="486" selection-start-column="36" selection-end-line="486" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/extras/basic_example/public/script.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="132" column="33" selection-start-line="132" selection-start-column="33" selection-end-line="132" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Events.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-14.451612">
+          <caret line="97" column="40" selection-start-line="97" selection-start-column="40" selection-end-line="97" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoClient/src/Stream.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="33" column="6" selection-start-line="33" selection-start-column="6" selection-end-line="33" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoAgent/erizoAgent.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="51" column="22" selection-start-line="51" selection-start-column="22" selection-end-line="51" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoJS/erizoJS.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3478261">
+          <caret line="87" column="3" selection-start-line="87" selection-start-column="3" selection-end-line="87" selection-end-column="3" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/erizo_controller/erizoJS/erizoJSController.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-9.0">
-          <caret line="186" column="25" selection-start-line="186" selection-start-column="9" selection-end-line="186" selection-end-column="25" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="-7.709677">
+          <caret line="102" column="6" selection-start-line="102" selection-start-column="6" selection-end-line="102" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/erizoController.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-7.709677">
+          <caret line="690" column="39" selection-start-line="690" selection-start-column="39" selection-end-line="690" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/.cproject">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.050167225">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/.project">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-1.081422">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/src/Doxyfile.in">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="20" column="74" selection-start-line="20" selection-start-column="74" selection-end-line="20" selection-end-column="74" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/src/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="30" column="6" selection-start-line="30" selection-start-column="6" selection-end-line="30" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/cmake/FindGlib.cmake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="22" column="18" selection-start-line="22" selection-start-column="18" selection-end-line="22" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/CMakeCache.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="145" column="48" selection-start-line="145" selection-start-column="48" selection-end-line="145" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/cmake_install.cmake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="30" column="39" selection-start-line="30" selection-start-column="39" selection-end-line="30" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/CMakeFiles/2.8.12.2/CompilerIdCXX/CMakeCXXCompilerId.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="13" column="59" selection-start-line="13" selection-start-column="59" selection-end-line="13" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/CMakeFiles/2.8.12.2/CMakeSystem.cmake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/CMakeFiles/TargetDirectories.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/CMakeFiles/Makefile2">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/CMakeFiles/Makefile.cmake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.387097">
+          <caret line="7" column="26" selection-start-line="7" selection-start-column="4" selection-end-line="7" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/CMakeFiles/CMakeDirectoryInformation.cmake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/CMakeFiles/cmake.check_cache">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/CMakeFiles/2.8.12.2/CMakeCCompiler.cmake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/CMakeFiles/2.8.12.2/CMakeCXXCompiler.cmake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/config.gypi">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="28" column="24" selection-start-line="28" selection-start-column="24" selection-end-line="28" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/build/Makefile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="39" column="0" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/buildProject.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/generateProject.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/src/examples/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/src/erizo/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="15" column="37" selection-start-line="15" selection-start-column="37" selection-end-line="15" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/src/erizo/PrecompiledHeaders.cmake">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="172" column="24" selection-start-line="172" selection-start-column="24" selection-end-line="172" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/log4js_configuration.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/licode_config.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="10" column="84" selection-start-line="10" selection-start-column="81" selection-end-line="10" selection-end-column="84" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/erizo_controller/erizoController/roomController.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-9.129032">
-          <caret line="176" column="0" selection-start-line="176" selection-start-column="0" selection-end-line="176" selection-end-column="0" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.0">
+          <caret line="5" column="26" selection-start-line="5" selection-start-column="17" selection-end-line="5" selection-end-column="26" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoAgent/erizo-4c7530d2-55f8-4c46-bd70-84b806897a3d.log">
+    <entry file="file://$PROJECT_DIR$/erizo_controller/common/logger.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.102417">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="9" column="24" selection-start-line="9" selection-start-column="24" selection-end-line="9" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoAgent/launch.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/installErizo_controller.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="10" column="12" selection-start-line="10" selection-start-column="12" selection-end-line="10" selection-end-column="12" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/initErizo_agent.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="11" column="0" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/initErizo_controller.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizoAPI/build.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/initLicode.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-5.72">
+          <caret line="25" column="13" selection-start-line="25" selection-start-column="13" selection-end-line="25" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erizo_controller/erizoAgent/log4cxx.properties">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4434524">
+          <caret line="27" column="39" selection-start-line="27" selection-start-column="39" selection-end-line="27" selection-end-column="39" />
           <folding />
         </state>
       </provider>

@@ -1,6 +1,7 @@
 #ifndef BUILDING_NODE_EXTENSION
 #define BUILDING_NODE_EXTENSION
 #endif
+#include <pchheader.h>
 #include <node.h>
 #include "OneToManyTranscoder.h"
 

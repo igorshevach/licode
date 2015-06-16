@@ -8,14 +8,10 @@ DEFINE_LOGGER(AudioMixingStream, "media.mixers.AudioMixingStream");
 
 
 int AudioSubstream::initStream(const AudioCodecInfo &info){
-	_S(audioDec_.initDecoder(info));
 	info_ = info;
-	//TODO make sure all these are unknown (taken from SDP or elsewhere)
-	info_.bitsPerSample = av_get_bytes_per_sample(audioDec_.aDecoderContext_->sample_fmt) * 8;
-	info_.bitsPerSample = info_.bitsPerSample ? info_.bitsPerSample : 8;
-	info_.channels = audioDec_.aDecoderContext_->channel_layout ? audioDec_.aDecoderContext_->channel_layout : 1;
-	info_.sampleRate = audioDec_.aDecoderContext_->sample_rate ? audioDec_.aDecoderContext_->sample_rate : 8000;
-	info_.codec = info_.bitsPerSample == 8 ? AUDIO_CODEC_PCM_U8 : AUDIO_CODEC_PCM_S16;
+	_S(audioDec_.initDecoder(info_,true));
+	info_.bitsPerSample =  av_get_bytes_per_sample(audioDec_.aDecoderContext_->sample_fmt) * 8;
+	info_.codec = SampleFormatToAudioCodec(audioDec_.aDecoderContext_->sample_fmt);
 	info_.bitRate = info_.sampleRate  * info_.channels  * info_.bitsPerSample / 8;
 	return 0;
 }
@@ -30,7 +26,7 @@ int AudioSubstream::decodeSteam(char *buf,int len){
 	_S(audioDec_.decodeAudio((unsigned char*)buf,len,this,&onDecodeAudio_s));
 	if(audioDecodeBuffer_.size() > 0)
 	{
-		return audioDecodeBuffer_.size() / av_get_bytes_per_sample(audioDec_.aDecoderContext_->sample_fmt);
+		return audioDecodeBuffer_.size() / av_get_bytes_per_sample(audioDec_.aDecoderContext_->sample_fmt) / info_.channels;
 	}
 	return 0;
 }
@@ -43,10 +39,23 @@ int AudioSubstream::onDecodeAudio_s(void *ctx,AVFrame *ready)
 
 int AudioSubstream::onDecodeAudio_(AVFrame *ready)
 {
+	AVSampleFormat fmt = (AVSampleFormat)ready->format;
 	int bps = av_get_bytes_per_sample((AVSampleFormat)ready->format);
-	ELOG_DEBUG("onDecodeAudio_(%p) %d samples. fmt %d (bps=%d)",this,ready->nb_samples,ready->format, bps	);
+	int req_sz = av_samples_get_buffer_size(NULL,info_.channels,ready->nb_samples,fmt,0);
+	ELOG_DEBUG("onDecodeAudio_(%p) %d samples. fmt %d (bps=%d) %d bytes",this,ready->nb_samples,ready->format, bps,
+			req_sz);
+	audioDecodeBuffer_.resize(audioDecodeBuffer_.size() + req_sz);
+	AVFrame out = {0};
+	out.nb_samples = ready->nb_samples;
+	out.channel_layout = ready->channel_layout;
+	out.format = ready->format;
+	out.sample_rate = ready->sample_rate;
 
-	audioDecodeBuffer_.insert(audioDecodeBuffer_.end(),ready->data[0],ready->data[0] + ready->nb_samples * bps);
+	_S( avcodec_fill_audio_frame(&out, info_.channels,
+			fmt, (const uint8_t*) &audioDecodeBuffer_.at(audioDecodeBuffer_.size() - req_sz), req_sz,
+			0));
+
+	_S(av_samples_copy(out.data,ready->data,0,0,ready->nb_samples,info_.channels,fmt));
 	return ready->nb_samples;
 }
 
@@ -77,7 +86,27 @@ AudioMixingStream::AudioMixingStream(uint32_t ssrc,const filetime::timestamp &to
 	invalidate_times();
 }
 
+void AudioMixingStream::updateSR(const RtcpHeader &head){
+
+	filetime::timestamp ntp = head.getNtpTimestampAsFileTime();
+	filetime::timestamp oldNtp = ntpTime_;
+	uint32_t oldRtp = rtpTime_;
+
+	// workaround for wrong SR NTP timestamps on chrome
+	curTime_ = ntpTime_ = currentSystemTimeAsFileTime(); /*head.getNtpTimestampAsFileTime() +*/
+
+	rtpTime_ = head.getRtpTimestamp();
+
+	filetime::timestamp n = currentSystemTimeAsFileTime() - filetime::NTP_TIME_BASE;
+	//if(oldNtp != filetime::MIN){
+	ELOG_INFO("::updateSR. rtcp ssrc=%u last ntp=%ld(old=%ld,diff=%ld 100ns units) rtp=%u(old=%u,diff=%u msec sr_ntp=%ld sys_ntp=%ld diff=%ld)", ssrc_,ntpTime_,
+			oldNtp,ntpTime_-oldNtp,rtpTime_,oldRtp,(rtpTime_-oldRtp) / 8 , ntp, n , n - ntp  );
+	//}
+}
+
 int AudioMixingStream::decodeStream(const RtpHeader *rtp,char *buf,int len){
+
+	ELOG_DEBUG("decodeStream. rtp ssrc=%u len=%d",rtp->getSSRC(),len);
 
 	len -= rtp->getHeaderLength();
 	buf += rtp->getHeaderLength();
@@ -85,8 +114,10 @@ int AudioMixingStream::decodeStream(const RtpHeader *rtp,char *buf,int len){
 	int decodedSamples;
 	_S(decodedSamples = stream_.decodeSteam(buf,len));
 
-	if(decodedSamples == 0)
+	if(decodedSamples == 0){
+		ELOG_DEBUG("decodeStream. rtp ssrc=%u decoded 0 samples",rtp->getSSRC());
 		return -1;
+	}
 
 	uint32_t rtp_diff = rtp->getTimestamp() - getRtpTime();
 	uint32_t time_msecs = rtp_time_to_millisec(rtp_diff,stream_.getSampleRate());
@@ -94,7 +125,7 @@ int AudioMixingStream::decodeStream(const RtpHeader *rtp,char *buf,int len){
 	filetime::timestamp tStart = getNtpTime() + filetime::milliseconds( time_msecs );
 	curTime_ = tStart + stream_.samplesToDuration(decodedSamples);
 
-	ELOG_DEBUG ("::decodeStream. processing rtp packet stream=%u hdrlen=%d pt=%d time=%u ftime=%ld len=%d decoded samples=%d",
+	ELOG_INFO ("decodeStream. rtp ssrc=%u hdrlen=%d pt=%d time=%u ftime=%ld len=%d decoded samples=%d",
 			 rtp->getSSRC(),rtp->getHeaderLength(),
 			rtp->getPayloadType(), rtp->getTimestamp(), tStart , len , decodedSamples);
 
@@ -162,7 +193,11 @@ int AudioMixingStream::updateRange(const time_range &r){
 
 		if(ranges_.front().second > r.second){
 
-			ELOG_DEBUG("::updateRange. ssrc=%u found =%ld-%ld",ssrc_,ranges_.front().first- getNtpTime(),ranges_.front().second- getNtpTime() );
+			ELOG_DEBUG("::updateRange. ssrc=%u found =%ld-%ld offset=%u size=%u",ssrc_,
+					ranges_.front().first- getNtpTime(),
+					ranges_.front().second- getNtpTime(),
+					stream_.durationToOffset( r.second - ranges_.front().first),
+					stream_.audioDecodeBuffer_.size());
 
 			stream_.audioDecodeBuffer_.erase(stream_.audioDecodeBuffer_.begin() ,
 					stream_.audioDecodeBuffer_.begin() + stream_.durationToOffset( r.second - ranges_.front().first));
@@ -171,7 +206,11 @@ int AudioMixingStream::updateRange(const time_range &r){
 			break;
 		}
 
-		ELOG_DEBUG("::updateRange. ssrc=%u remove range =%ld-%ld",ssrc_,ranges_.front().first- getNtpTime(),ranges_.front().second - getNtpTime());
+		ELOG_DEBUG("::updateRange. ssrc=%u remove range =%ld-%ld  offset=%u size=%u",ssrc_,
+				ranges_.front().first- getNtpTime(),
+				ranges_.front().second - getNtpTime(),
+				stream_.durationToOffset( r.second - ranges_.front().first),
+				stream_.audioDecodeBuffer_.size());
 
 		stream_.audioDecodeBuffer_.erase(stream_.audioDecodeBuffer_.begin(),
 				stream_.audioDecodeBuffer_.begin() + stream_.durationToOffset(ranges_.front().second - ranges_.front().first));
@@ -188,23 +227,6 @@ void AudioMixingStream::invalidate_times(){
 	ranges_.clear();
 }
 
-void AudioMixingStream::updateSR(const RtcpHeader &head){
-
-	filetime::timestamp ntp = head.getNtpTimestampAsFileTime();
-	filetime::timestamp oldNtp = ntpTime_;
-	uint32_t oldRtp = rtpTime_;
-
-	// workaround for wrong SR NTP timestamps on chrome
-	curTime_ = ntpTime_ = currentSystemTimeAsFileTime(); /*head.getNtpTimestampAsFileTime() +*/
-
-	rtpTime_ = head.getRtpTimestamp();
-
-	filetime::timestamp n = currentSystemTimeAsFileTime();
-	//if(oldNtp != filetime::MIN){
-	ELOG_DEBUG("::updateSR. ssrc=%u last ntp=%ld(old=%ld,diff=%ld 100ns units) rtp=%u(old=%u,diff=%u msec ntp %ld curtime %ld diff %ld)", ssrc_,ntpTime_,
-			oldNtp,ntpTime_-oldNtp,rtpTime_,oldRtp,(rtpTime_-oldRtp) / 8 , ntp, n , ntp - n  );
-	//}
-}
 
 filetime::timestamp AudioMixingStream::getCurrentTime() const{
 	return curTime_;

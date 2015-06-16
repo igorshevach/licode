@@ -18,7 +18,7 @@ class WebRtcConnection;
  * Represents a One to Many connection.
  * Receives media from one publisher and retransmits it to every subscriber.
  */
-class OneToManyProcessor : public MediaSink, public FeedbackSink {
+class OneToManyProcessor : public MediaSink, public FeedbackSink, public EncoderCallback {
 	DECLARE_LOGGER();
 
 public:
@@ -92,25 +92,23 @@ private:
   AudioMixerStateManager audioMixerManager_;
 
   long ptimeToByteOffset(const filetime::timestamp &t) const{
-	  return ptimeToDuratiom(t - audioMixerManager_.startTime());
+	  return audioInfo_.ftimeDurationToBitrate(t - audioMixerManager_.startTime());
   }
-  long ptimeToDuratiom(const filetime::timestamp &ival) const{
-	  return (ival * audioInfo_.bitRate / filetime::SECOND);
-  }
-  long ftimeDurationToSampleNum(const filetime::timestamp &duration) const{
- 	  return duration * audioInfo_.sampleRate / filetime::SECOND ;
-   }
-  long bitrateToDuration(const uint32_t &br) const{
- 	  return br * filetime::SECOND / audioInfo_.bitRate;
-   }
-  filetime::timestamp sampleNumToFiltimeDuration(const int &samples) const{
- 	  return samples * filetime::SECOND / audioInfo_.sampleRate;
-   }
+
   int sendMixedAudio_(AudioMixingStream &provider,int samples);
   int mixAudioWith_(AudioMixingStream &subs);
 
   filetime::timestamp getCurrentTime() const;
+//EncoderCallback
+ int onEncodePacket(int samples,AVPacket &pkt);
+ unsigned char *allocMemory(const size_t &size);
 
+ //packetization
+ static const int RTP_HDR_SZ = RtpHeader::MIN_SIZE;
+
+ void FillRtpExtData(RtpHeader &rtp){
+
+ }
   // @igors
 
   int deliverAudioData_(char* buf, int len);

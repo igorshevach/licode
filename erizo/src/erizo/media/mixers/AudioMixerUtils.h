@@ -9,10 +9,35 @@
 #define MIXERUTILS_H_
 
 #include "erizo_common.h"
+#include "../codecs/Codecs.h"
 #include "AudioSubStream.h"
 
 namespace erizo
 {
+
+template <typename T, typename S>
+struct MixTraits{
+	typedef T * iterator;
+	typedef T & reference;
+	typedef S sum_type;
+	typedef T the_type;
+};
+
+template <AudioCodecID RAW_TYPE>
+struct AudioCodecMapper{};
+
+template <> struct AudioCodecMapper<AUDIO_CODEC_PCM_U8>{
+	typedef MixTraits<uint8_t, uint16_t> MixTraits_t;
+};
+
+template<>  struct AudioCodecMapper<AUDIO_CODEC_PCM_S16>{
+	typedef MixTraits<int16_t, int32_t> MixTraits_t;
+};
+
+template<> struct AudioCodecMapper<AUDIO_CODEC_PCM_FLTP>{
+	typedef MixTraits<float, double> MixTraits_t;
+};
+
 template <typename SAMPLE_TRAITS>
 class audio_mix_utils{
 
@@ -65,15 +90,59 @@ public:
 		// check for new data reaching beyond current high marker
 		return (srcIt  - src) * sizeof(typename SAMPLE_TRAITS::the_type);
 	}
+
 };
 
 template <typename T>
-struct MixTraits{
-	typedef T * iterator;
-	typedef T & reference;
-	typedef uint64_t sum_type;
-	typedef T the_type;
-};
+BUFFER_TYPE::difference_type fill(BUFFER_TYPE::iterator iter,const BUFFER_TYPE::size_type &n, const T &val){
+
+	const BUFFER_TYPE::difference_type d = sizeof(T);
+	BUFFER_TYPE::size_type ec = n / sizeof(T);
+	while(ec > 0){
+		(T &)*iter = val;
+		std::advance(iter,d);
+		ec--;
+	}
+	return ec * sizeof(T);
+}
+
+inline
+BUFFER_TYPE::difference_type fill_silence(const AudioCodecID &codec,
+		BUFFER_TYPE::iterator iter,const BUFFER_TYPE::size_type &n){
+	switch(codec){
+	case AUDIO_CODEC_PCM_U8:
+		return fill(iter,n,(typename AudioCodecMapper<AUDIO_CODEC_PCM_U8>::MixTraits_t::the_type)0);
+	case AUDIO_CODEC_PCM_S16:
+		return fill(iter,n,(typename AudioCodecMapper<AUDIO_CODEC_PCM_S16>::MixTraits_t::the_type)0);
+	case AUDIO_CODEC_PCM_FLTP:
+		return fill(iter,n,(typename AudioCodecMapper<AUDIO_CODEC_PCM_FLTP>::MixTraits_t::the_type)0);
+	default:
+		return -1;
+	};
+}
+
+inline
+BUFFER_TYPE::difference_type
+		do_mix(const AudioCodecID &codec,
+		BUFFER_TYPE::iterator srcIt,
+		BUFFER_TYPE::iterator srcItEnd,
+		BUFFER_TYPE::iterator mixItStart,
+		BUFFER_TYPE::iterator mixItEnd,
+		int div_factor){
+	switch(codec){
+		case AUDIO_CODEC_PCM_U8:
+			return  audio_mix_utils< AudioCodecMapper<AUDIO_CODEC_PCM_U8>::MixTraits_t  >::mix(srcIt,srcItEnd,mixItStart,mixItEnd,div_factor);
+			break;
+		case AUDIO_CODEC_PCM_S16:
+			return  audio_mix_utils< AudioCodecMapper<AUDIO_CODEC_PCM_S16>::MixTraits_t >::mix(srcIt,srcItEnd,mixItStart,mixItEnd,div_factor);
+			break;
+		case AUDIO_CODEC_PCM_FLTP:
+			return audio_mix_utils< AudioCodecMapper<AUDIO_CODEC_PCM_FLTP>::MixTraits_t >::mix(srcIt,srcItEnd,mixItStart,mixItEnd,div_factor);
+			break;
+		default:
+			return -1;
+		};
+}
 
 template <typename T>
 class SynthWave
@@ -86,19 +155,42 @@ public:
 
 	static const int volume_factor = 1;
 
+
 	int filldata(unsigned char *pdata,int samples,int freq = 440){
 		T *data = (T*)pdata;
 		int energy = 0;
 		for(int i = 0; i < samples ; i++){
 			double dSample = osc(freq);
 			if(std::numeric_limits<T>::is_signed){
-				data[i] = (dSample - 0.5) * std::numeric_limits<T>::max() / volume_factor;
-			} else {
-				data[i] = dSample * std::numeric_limits<T>::max() / volume_factor;
-			}
+			data[i] = (dSample - 0.5) * std::numeric_limits<T>::max() / volume_factor;
+		} else {
+			data[i] = dSample * std::numeric_limits<T>::max() / volume_factor;
+		}
 			energy += data[i];
 		}
 		return energy;
+	}
+	void filldata(AVFrame *frame,int freq = 440){
+		int energy = 0;
+		const int channels = av_get_channel_layout_nb_channels(frame->channel_layout);
+		const bool is_planar = av_sample_fmt_is_planar(frame->format);
+
+		for(int i = 0; i < frame->nb_samples ; i++){
+			double dSample = osc(freq);
+			int16_t sval = (dSample - 0.5) * std::numeric_limits<int16_t>::max() / volume_factor;
+			if(is_planar){
+				int16_t **pp= (int16_t **)frame->data;
+				for(int j=0; j < channels; j++){
+					*pp[i] = sval;
+					pp++;
+				}
+			} else {
+				int16_t *pp= (int16_t *)&frame->data[0] + i;
+				for(int j=0; j < channels; j++){
+					*pp++ = sval;
+				}
+			}
+		}
 	}
 private:
 	double phase_;
@@ -182,7 +274,6 @@ class AudioMixerStateManager {
 
 	  RATING_LIST ratings_;
  };
-
 
 }
 
