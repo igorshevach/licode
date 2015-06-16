@@ -74,5 +74,13 @@ as always with captured media:
 - timestamp jitter affecting audio is expected. 
 - timestamps drift between different sources due to different sources (even between same video and microphone).
 
-
-
+16/06/15 ishevach:
+   discovered problems:
+   - for some reasons chrome ntp timestamp in RTCP sender report varies from expected value by the matter of seconds or dozen of seconds.this is a nuisanse since i would expect most of connected to internet machines to be synchronized with time server. this seems to be a chrome bug. so, it looks like i have no choice but calculate streams jitter and apply local system time with jitter correction instead of relying on ntp to rtp mapping for various streams.
+   - building with eclipse: for some reasons erizoAPI target (addon.node) is erased after erizo project is rebuilt.
+      erizoAPI project does not notice that however runtime crashes which forces me manually clen & rebuild erizoAPI project every time there has been changes to header files in erizo project!
+   - debugging with eclipse: i've modified scripts/initlicode.sh not to run init_erizoagent.sh when i intend to debug c++ code on my self. i then run custom debug configuration to debug nodejs with erizoagent.js  as cmd argument.
+     another issue is mastering gdb debugging.
+     sometimes it works but sometimes it doesn't.
+- postmortem core debugging: despite all native code is compiled as debug core does not provide any meaningful information, but that might be due to my misunderstanding.
+ 
